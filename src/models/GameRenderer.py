@@ -165,7 +165,9 @@ class GameRenderer:
             if plot_events == True:
                 pps_in_frame = pp_data[(frame_num >= pp_data['frame_start']) & (frame_num <= pp_data['frame_end'])]
                 pp_event_row = pps_in_frame.iloc[0] if not pps_in_frame.empty else None
-            self.plot_frame(ax, enriched_data, pp_event_row, frame_num)
+                self.plot_frame(ax, enriched_data, pp_event_row, frame_num)
+            else:
+                self.plot_frame(ax, enriched_data, None, frame_num)
             clear_output(wait=True)
             display(fig)
             
