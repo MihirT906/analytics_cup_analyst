@@ -30,20 +30,11 @@ class GameRenderer:
         '''
             This function plots a single frame of the game on the provided axis.
         '''
-        # Clear previous scatter plots but keep pitch lines
-        ax.clear()
-        
-        # Redraw pitch on cleared axes
-        pitch = Pitch(
-            pitch_type="skillcorner",
-            line_alpha=0.75,
-            pitch_length=105,
-            pitch_width=68,
-            pitch_color="#001400",
-            line_color="white",
-            linewidth=1.5,
-        )
-        pitch.draw(ax=ax)
+        # Remove only scatter plots (players and ball), keep pitch lines
+        # Get all collections (scatter plots) and remove them
+        for collection in ax.collections[:]:
+            if hasattr(collection, '_sizes'):  # This identifies scatter plots
+                collection.remove()
         
         frame_data = enriched_data[enriched_data['frame'] == frame_num]
         if frame_data.empty:
