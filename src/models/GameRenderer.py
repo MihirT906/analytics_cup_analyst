@@ -30,9 +30,22 @@ class GameRenderer:
         '''
             This function plots a single frame of the game on the provided axis.
         '''
+        # Extract player in possession if any
         pp_data = events_data[events_data['event_type'] == 'player_possession']
         pps_in_frame = pp_data[(frame_num >= pp_data['frame_start']) & (frame_num <= pp_data['frame_end'])]
         pp_event_row = pps_in_frame.iloc[0] if not pps_in_frame.empty else None
+        
+        
+        #if pp_event_row is not None:
+        # Extract passing options
+        po_data = events_data[events_data['event_type'] == 'passing_option']
+        po_event_rows = po_data[po_data['associated_player_possession_event_id'] == pp_event_row['event_id']] if pp_event_row is not None else pd.DataFrame()
+        
+        # Extract on ball engagements
+        ob_data = events_data[events_data['event_type'] == 'on_ball_engagement']
+        ob_event_rows = ob_data[ob_data['associated_player_possession_event_id'] == pp_event_row['event_id']] if pp_event_row is not None else pd.DataFrame()
+
+        
         # Remove only scatter plots (players and ball), keep pitch lines
         # Get all collections (scatter plots) and remove them
         for collection in ax.collections[:]:
@@ -54,14 +67,20 @@ class GameRenderer:
         player_in_possession_id = None
         if pp_event_row is not None:
             player_in_possession_id = pp_event_row['player_id']
+        
+        # Get player IDs for passing options and on-ball engagements
+        passing_option_player_ids = set(po_event_rows['player_id'].tolist()) if not po_event_rows.empty else set()
+        on_ball_engagement_player_ids = set(ob_event_rows['player_id'].tolist()) if not ob_event_rows.empty else set()
             
         for i, team in enumerate(teams):
             team_data = frame_data[frame_data['team_name'] == team]
             
-            # Regular players (excluding player in possession and goalkeepers)
+            # Regular players (excluding player in possession, goalkeepers, passing options, and on-ball engagements)
             regular_players = team_data[
                 (team_data['is_gk'] == False) & 
-                (team_data['player_id'] != player_in_possession_id)
+                (team_data['player_id'] != player_in_possession_id) &
+                (~team_data['player_id'].isin(passing_option_player_ids)) &
+                (~team_data['player_id'].isin(on_ball_engagement_player_ids))
             ]
             if not regular_players.empty:
                 ax.scatter(
@@ -73,6 +92,42 @@ class GameRenderer:
                     edgecolors='white',
                     linewidths=1.5,
                     zorder=10
+                )
+            
+            # Players with passing options (yellow border)
+            passing_option_players = team_data[
+                (team_data['is_gk'] == False) & 
+                (team_data['player_id'].isin(passing_option_player_ids)) &
+                (team_data['player_id'] != player_in_possession_id)
+            ]
+            if not passing_option_players.empty:
+                ax.scatter(
+                    passing_option_players['x'],
+                    passing_option_players['y'],
+                    c=colors[i % len(colors)],
+                    alpha=0.95,
+                    s=size,
+                    edgecolors='yellow',
+                    linewidths=2.5,
+                    zorder=11
+                )
+            
+            # Players with on-ball engagements (black border and larger size)
+            on_ball_engagement_players = team_data[
+                (team_data['is_gk'] == False) & 
+                (team_data['player_id'].isin(on_ball_engagement_player_ids)) &
+                (team_data['player_id'] != player_in_possession_id)
+            ]
+            if not on_ball_engagement_players.empty:
+                ax.scatter(
+                    on_ball_engagement_players['x'],
+                    on_ball_engagement_players['y'],
+                    c=colors[i % len(colors)],
+                    alpha=0.95,
+                    s=size * 1.3,
+                    edgecolors='black',
+                    linewidths=2.5,
+                    zorder=11
                 )
             
             # Goalkeepers (different marker)
@@ -135,7 +190,9 @@ class GameRenderer:
         legend_elements = [
             plt.scatter([], [], c='#084D42', s=100, label='Team 1'),
             plt.scatter([], [], c='#E51717', s=100, label='Team 2'),
-            plt.scatter([], [], c='gray', s=130, edgecolors='white', linewidths=3, label='Player in Possession (thicker edge)'),
+            plt.scatter([], [], c='gray', s=130, edgecolors='white', linewidths=3, label='Player in Possession'),
+            plt.scatter([], [], c='gray', s=100, edgecolors='yellow', linewidths=2.5, label='Passing Option'),
+            plt.scatter([], [], c='gray', s=130, edgecolors='black', linewidths=2.5, label='On-Ball Engagement'),
             plt.scatter([], [], c='white', s=50, edgecolors='black', label='Ball'),
         ]
         ax.legend(handles=legend_elements, loc='upper left', bbox_to_anchor=(0, 1))
