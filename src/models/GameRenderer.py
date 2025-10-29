@@ -26,10 +26,13 @@ class GameRenderer:
         
         return fig, ax
 
-    def plot_frame(self, ax, enriched_data, pp_event_row, frame_num):
+    def plot_frame(self, ax, enriched_data, events_data, frame_num):
         '''
             This function plots a single frame of the game on the provided axis.
         '''
+        pp_data = events_data[events_data['event_type'] == 'player_possession']
+        pps_in_frame = pp_data[(frame_num >= pp_data['frame_start']) & (frame_num <= pp_data['frame_end'])]
+        pp_event_row = pps_in_frame.iloc[0] if not pps_in_frame.empty else None
         # Remove only scatter plots (players and ball), keep pitch lines
         # Get all collections (scatter plots) and remove them
         for collection in ax.collections[:]:
@@ -147,14 +150,11 @@ class GameRenderer:
         '''
         # Load data
         enriched_data = self.data_loader.create_enriched_tracking_data(match_id)
+        events_data = self.data_loader.load_event_data(match_id)
         
         # Collect the frames within episode
         available_frames = sorted(enriched_data['frame'].unique())
         frames_to_plot = [f for f in available_frames if start_frame <= f <= end_frame]
-
-        if plot_events == True:
-            events_data = self.data_loader.load_event_data(match_id)
-            pp_data = events_data[events_data['event_type'] == 'player_possession']
             
 
         # Create pitch once
@@ -162,12 +162,7 @@ class GameRenderer:
         
         # Animation loop - plot each frame
         for frame_num in frames_to_plot:
-            if plot_events == True:
-                pps_in_frame = pp_data[(frame_num >= pp_data['frame_start']) & (frame_num <= pp_data['frame_end'])]
-                pp_event_row = pps_in_frame.iloc[0] if not pps_in_frame.empty else None
-                self.plot_frame(ax, enriched_data, pp_event_row, frame_num)
-            else:
-                self.plot_frame(ax, enriched_data, None, frame_num)
+            self.plot_frame(ax, enriched_data, events_data, frame_num)
             clear_output(wait=True)
             display(fig)
             
