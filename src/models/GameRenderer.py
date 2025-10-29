@@ -173,5 +173,3 @@ class GameRenderer:
             
             if delay > 0:
                 time.sleep(delay)
-        
-        return ax
