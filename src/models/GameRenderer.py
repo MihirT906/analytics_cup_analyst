@@ -30,25 +30,38 @@ class GameRenderer:
         '''
             This function plots a single frame of the game on the provided axis.
         '''
+        # Extract tracking in frame
+        frame_data = enriched_data[enriched_data['frame'] == frame_num]
+        
+        # Extract events in frame
         events_data = events_data[(frame_num >= events_data['frame_start']) & (frame_num <= events_data['frame_end'])]
-        # Extract player in possession if any
+        
+        # Extract player possession
         pp_data = events_data[events_data['event_type'] == 'player_possession']
-        #pps_in_frame = pp_data[(frame_num >= pp_data['frame_start']) & (frame_num <= pp_data['frame_end'])]
         pp_event_row = pp_data.iloc[0] if not pp_data.empty else None
+        pp_player = pp_event_row['player_id'] if pp_event_row is not None else None
 
-        #if pp_event_row is not None:
         # Extract passing options
         po_data = events_data[events_data['event_type'] == 'passing_option']
         po_event_rows = po_data[po_data['associated_player_possession_event_id'] == pp_event_row['event_id']] if pp_event_row is not None else pd.DataFrame()
-        
+        # I want a set
+        po_players = set(po_event_rows['player_id'].tolist()) if not po_event_rows.empty else set()
+
         # Extract on ball engagements
         obe_data = events_data[events_data['event_type'] == 'on_ball_engagement']
         obe_event_rows = obe_data[obe_data['associated_player_possession_event_id'] == pp_event_row['event_id']] if pp_event_row is not None else pd.DataFrame()
+        obe_players = set(obe_event_rows['player_id'].tolist()) if not obe_event_rows.empty else set()
 
         # Extract off ball runs
         obr_data = events_data[events_data['event_type'] == 'off_ball_run']
         obr_event_rows = obr_data[obr_data['associated_player_possession_event_id'] == pp_event_row['event_id']] if pp_event_row is not None else pd.DataFrame()
+        obr_players = set(obr_event_rows['player_id'].tolist()) if not obr_event_rows.empty else set()
 
+        # Add events to frame data
+        frame_data['is_possession_player'] = frame_data.loc[:, 'player_id'].apply(lambda x: x == pp_player)
+        frame_data['is_passing_option'] = frame_data.loc[:, 'player_id'].apply(lambda x: x in po_players)
+        frame_data['is_on_ball_engagement'] = frame_data.loc[:, 'player_id'].apply(lambda x: x in obe_players)
+        frame_data['is_off_ball_run'] = frame_data.loc[:, 'player_id'].apply(lambda x: x in obr_players)
         # Clear everything from the axes
         ax.clear()
         
@@ -64,7 +77,6 @@ class GameRenderer:
         )
         pitch.draw(ax=ax)
         
-        frame_data = enriched_data[enriched_data['frame'] == frame_num]
         if frame_data.empty:
             print(f"No data found for frame {frame_num}")
             return
@@ -81,8 +93,8 @@ class GameRenderer:
             player_in_possession_id = pp_event_row['player_id']
         
         # Get player IDs for passing options and on-ball engagements
-        passing_option_player_ids = set(po_event_rows['player_id'].tolist()) if not po_event_rows.empty else set()
-        on_ball_engagement_player_ids = set(obe_event_rows['player_id'].tolist()) if not obe_event_rows.empty else set()
+        #passing_option_player_ids = set(po_event_rows['player_id'].tolist()) if not po_event_rows.empty else set()
+        #on_ball_engagement_player_ids = set(obe_event_rows['player_id'].tolist()) if not obe_event_rows.empty else set()
             
         for i, team in enumerate(teams):
             team_data = frame_data[frame_data['team_name'] == team]
@@ -90,9 +102,9 @@ class GameRenderer:
             # Regular players (excluding player in possession, goalkeepers, passing options, and on-ball engagements)
             regular_players = team_data[
                 (team_data['is_gk'] == False) & 
-                (team_data['player_id'] != player_in_possession_id) &
-                (~team_data['player_id'].isin(passing_option_player_ids)) &
-                (~team_data['player_id'].isin(on_ball_engagement_player_ids))
+                (team_data['is_passing_option'] == False) &
+                (team_data['is_on_ball_engagement'] == False) &
+                (team_data['is_off_ball_run'] == False)
             ]
             if not regular_players.empty:
                 ax.scatter(
@@ -109,8 +121,7 @@ class GameRenderer:
             # Players with passing options (yellow border)
             passing_option_players = team_data[
                 (team_data['is_gk'] == False) & 
-                (team_data['player_id'].isin(passing_option_player_ids)) &
-                (team_data['player_id'] != player_in_possession_id)
+                (team_data['is_passing_option'] == True)
             ]
             if not passing_option_players.empty:
                 ax.scatter(
@@ -127,8 +138,7 @@ class GameRenderer:
             # Players with on-ball engagements (black border and larger size)
             on_ball_engagement_players = team_data[
                 (team_data['is_gk'] == False) & 
-                (team_data['player_id'].isin(on_ball_engagement_player_ids)) &
-                (team_data['player_id'] != player_in_possession_id)
+                (team_data['is_on_ball_engagement'] == True)
             ]
             if not on_ball_engagement_players.empty:
                 ax.scatter(
@@ -151,32 +161,55 @@ class GameRenderer:
                     c=colors[i % len(colors)],
                     alpha=0.95,
                     s=size * 1.2,
-                    edgecolors='yellow',
+                    edgecolors='white',
                     linewidths=3,
                     marker='s',  # Square marker for GK
                     zorder=10
                 )
-        
-        # Plot player in possession with same team color but thicker edge
-        if player_in_possession_id is not None:
-            possession_player = frame_data[frame_data['player_id'] == player_in_possession_id]
+            
+            # Plot player in possession (largest size and white border)
+            possession_player = team_data[team_data['is_possession_player'] == True]
             if not possession_player.empty:
-                # Get the team color for the player in possession
-                team_name = possession_player['team_name'].iloc[0]
-                team_index = list(teams).index(team_name)
-                team_color = colors[team_index % len(colors)]
-                
                 ax.scatter(
                     possession_player['x'],
                     possession_player['y'],
-                    c=team_color,  # Same color as team
+                    c=colors[i % len(colors)],
                     alpha=1.0,
                     s=size * 1.3,
                     edgecolors='white',
                     linewidths=3,  # Thicker edge
                     zorder=12  # Higher z-order to be on top
                 )
-        
+                
+            # Plot off ball runs
+            off_ball_run_players = team_data[team_data['is_off_ball_run'] == True]
+            if not off_ball_run_players.empty:
+                for obr_player in off_ball_run_players['player_id']:
+                    run_event = obr_event_rows[obr_event_rows['player_id'] == obr_player].iloc[0]
+                    # Get the current position of the runner from tracking data
+                    runner_current = team_data[team_data['player_id'] == obr_player]
+                    if not runner_current.empty:
+                        # Plot the run trajectory line from start to current position
+                        ax.plot(
+                            [-run_event['x_start'], runner_current['x'].iloc[0]],
+                            [-run_event['y_start'], runner_current['y'].iloc[0]],
+                            color='#E5BA21',
+                            linewidth=2,
+                            linestyle='--',
+                            zorder=8
+                        )
+                        
+                        # Plot the start position of the run
+                        ax.scatter(
+                            -run_event['x_start'],
+                            -run_event['y_start'],
+                            c='#E5BA21',
+                            alpha=0.55,
+                            s=size / 2,
+                            edgecolors='#E5BA21',
+                            linewidths=2.5,
+                            zorder=9
+                        )
         # Plot ball if available
         if 'ball_x' in frame_data.columns and not frame_data['ball_x'].isna().all():
             ball_data = frame_data[['ball_x', 'ball_y']].dropna()
@@ -191,33 +224,6 @@ class GameRenderer:
                     zorder=15
                 )
         
-        # Plot off-ball runs
-        if not obr_event_rows.empty:
-            for _, run_event in obr_event_rows.iterrows():
-                # Get the current position of the runner from tracking data
-                runner_current = frame_data[frame_data['player_id'] == run_event['player_id']]
-                if not runner_current.empty:
-                    # Plot the run trajectory line from start to current position
-                    ax.plot(
-                        [run_event['x_start'], runner_current['x'].iloc[0]],
-                        [run_event['y_start'], runner_current['y'].iloc[0]],
-                        color='#E5BA21',
-                        linewidth=2,
-                        linestyle='--',
-                        zorder=8
-                    )
-                    
-                    # Plot the start position of the run
-                    ax.scatter(
-                        run_event['x_start'],
-                        run_event['y_start'],
-                        c='#E5BA21',
-                        alpha=0.55,
-                        s=size / 2,
-                        edgecolors='#E5BA21',
-                        linewidths=2.5,
-                        zorder=9
-                    )
         
         # Add frame info
         timestamp = frame_data['timestamp'].iloc[0] if 'timestamp' in frame_data.columns else 'N/A'
@@ -238,7 +244,9 @@ class GameRenderer:
             plt.scatter([], [], c='white', s=50, edgecolors='black', label='Ball'),
         ]
         ax.legend(handles=legend_elements, loc='upper left', bbox_to_anchor=(0, 1))
-        
+        ax.set_title(f'Frame: {frame_num} | Time: {timestamp} | Period: {period}', 
+                      fontsize=12, fontweight='bold', color='white', pad=20)
+        print(frame_num)
         return ax
         
  
