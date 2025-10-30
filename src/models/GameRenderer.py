@@ -30,12 +30,12 @@ class GameRenderer:
         '''
             This function plots a single frame of the game on the provided axis.
         '''
+        events_data = events_data[(frame_num >= events_data['frame_start']) & (frame_num <= events_data['frame_end'])]
         # Extract player in possession if any
         pp_data = events_data[events_data['event_type'] == 'player_possession']
-        pps_in_frame = pp_data[(frame_num >= pp_data['frame_start']) & (frame_num <= pp_data['frame_end'])]
-        pp_event_row = pps_in_frame.iloc[0] if not pps_in_frame.empty else None
-        
-        
+        #pps_in_frame = pp_data[(frame_num >= pp_data['frame_start']) & (frame_num <= pp_data['frame_end'])]
+        pp_event_row = pp_data.iloc[0] if not pp_data.empty else None
+
         #if pp_event_row is not None:
         # Extract passing options
         po_data = events_data[events_data['event_type'] == 'passing_option']
@@ -199,8 +199,8 @@ class GameRenderer:
                 if not runner_current.empty:
                     # Plot the run trajectory line from start to current position
                     ax.plot(
-                        [run_event['x_start'], run_event['y_start']],
-                        [runner_current['x'].iloc[0], runner_current['y'].iloc[0]],
+                        [run_event['x_start'], runner_current['x'].iloc[0]],
+                        [run_event['y_start'], runner_current['y'].iloc[0]],
                         color='#E5BA21',
                         linewidth=2,
                         linestyle='--',
