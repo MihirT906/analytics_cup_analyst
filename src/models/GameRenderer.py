@@ -6,6 +6,7 @@ import matplotlib.pyplot as plt
 import pandas as pd
 import numpy as np
 from collections import defaultdict
+from datetime import datetime, timedelta
 
 class GameRenderer:
     def __init__(self):
@@ -209,12 +210,23 @@ class GameRenderer:
                 )
         
         
-        # Add frame info
+        # Add frame num | Time elapsed | Period
         timestamp = frame_data['timestamp'].iloc[0] if 'timestamp' in frame_data.columns else 'N/A'
         period = frame_data['period'].iloc[0] if 'period' in frame_data.columns else 'N/A'
         
-        ax.set_title(f'Frame: {frame_num} | Time: {timestamp} | Period: {period}', 
-                    fontsize=12, fontweight='bold', color='white', pad=20)
+        if timestamp != 'N/A':
+            try:
+                timestamp_dt = pd.to_datetime(timestamp)
+                time_display = timestamp_dt.strftime("%Y-%m-%d %H:%M:%S")
+            except:
+                time_display = str(timestamp)
+        else:
+            time_display = str(timestamp)
+        
+        # Create a more prominent title display
+        title_text = f'Frame: {frame_num} | Time Elapsed: {time_display} | Period: {period}'
+        ax.set_title(title_text, fontsize=14, fontweight='bold', color='white', pad=25,
+                    bbox=dict(boxstyle="round,pad=0.5", facecolor='black', alpha=0.8))
         
         # Add legend
         legend_elements = [
@@ -228,8 +240,6 @@ class GameRenderer:
             plt.scatter([], [], c='white', s=50, edgecolors='black', label='Ball'),
         ]
         ax.legend(handles=legend_elements, loc='upper left', bbox_to_anchor=(0, 1))
-        ax.set_title(f'Frame: {frame_num} | Time: {timestamp} | Period: {period}', 
-                      fontsize=12, fontweight='bold', color='white', pad=20)
         return ax
         
  
@@ -262,4 +272,4 @@ class GameRenderer:
             if delay > 0:
                 time.sleep(delay)
                     
-        return fig, ax
+        # return fig, ax
