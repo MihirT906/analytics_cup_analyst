@@ -5,100 +5,26 @@ import time
 import matplotlib.pyplot as plt
 import pandas as pd
 import numpy as np
+import json
+import os
 from collections import defaultdict
-from datetime import datetime, timedelta
 
 class GameRenderer:
-    def __init__(self, config=None):
+    def __init__(self, config_file=None):
         self.data_loader = DataLoader()
-        default_config = {
-            'display': {
-                'figsize': (14, 10),
-                'title': {
-                    'enabled': True,
-                    'fontsize': 14,
-                    'color': 'white',
-                    'pad': 25
-                }
-            },
-            'pitch': {
-                'type': "skillcorner",
-                'dimensions': {
-                    'length': 105,
-                    'width': 68
-                },
-                'styling': {
-                    'background_color': "#aabb97",
-                    'line_color': "white",
-                    'line_width': 1.5,
-                    'line_alpha': 0.75,
-                    'stripe_color': '#c2d59d',
-                    'show_stripes': True
-                }
-            },
-            'teams': {
-                    'colors': ["#5559DB", "#D56363"]
-                },
-            'players': {
-                'styling': {
-                    'size': 150,
-                    'alpha': 0.95,
-                    'edge_width': 1.5,
-                    'gk_size_multiplier': 1.2,
-                    'edgecolors': 'white',
-                    'marker': 'o',
-                    'z_order': 10
-                },
-                'events': {
-                    'possession': {
-                        'enabled': True,
-                        'size_multiplier': 1.3,
-                        'edge_color': 'white',
-                        'edge_width': 2.5,
-                        'z_order': 12
-                    },
-                    'passing_options': {
-                        'enabled': True,
-                        'edge_color': 'yellow',
-                        'edge_width': 2.5,
-                        'z_order': 11
-                    },
-                    'on_ball_engagement': {
-                        'enabled': True,
-                        'edge_color': 'black',
-                        'edge_width': 2.5,
-                        'z_order': 11
-                    },
-                    'off_ball_runs': {
-                        'enabled': True,
-                        'path_color': '#E5BA21',
-                        'alpha': 0.55,
-                        'path_width': 2,
-                        'path_style': '--',
-                        'start_marker_size': 0.5,
-                        'start_marker_alpha': 0.55,
-                        'z_order': 8
-                    }
-                }
-            },
-            'ball': {
-                'enabled': True,
-                'color': 'white',
-                'size': 100,
-                'edge_color': 'black',
-                'edge_width': 2,
-                'z_order': 15
-            },
-            'legend': {
-                'enabled': True,
-                'location': 'upper left',
-                'bbox_anchor': (0, 1),
-                'text_size': 100
-            }
-        }
-        if config:
-            self.config = config
-            self.config = self._merge_configs(default_config, self.config)
+        
+        # Load default configuration from JSON file
+        default_config_path = os.path.join(os.path.dirname(__file__), '..', 'config', 'default_game_renderer_config.json')
+        with open(default_config_path, 'r') as f:
+            default_config = json.load(f)
+        
+        # Convert JSON arrays back to tuples where needed
+        default_config['display']['figsize'] = tuple(default_config['display']['figsize'])
+        default_config['legend']['bbox_anchor'] = tuple(default_config['legend']['bbox_anchor'])
+        if config_file:
+            with open(config_file, 'r') as f:
+                user_config = json.load(f)
+            self.config = self._merge_configs(default_config, user_config)
         else:
             self.config = default_config
 
@@ -229,7 +155,6 @@ class GameRenderer:
 
         for i, team in enumerate(teams):
             team_mask = frame_data['team_name'] == team
-            team_data = frame_data[team_mask]
             
             # Regular players (no special events)
             regular_mask = team_mask & ~possession_mask & ~passing_mask & ~engagement_mask
@@ -335,7 +260,7 @@ class GameRenderer:
             time_display = str(timestamp)
         
         # Create a more prominent title display
-        title_text = f'Frame: {frame_num} | Time Elapsed: {time_display} | Period: {period}'
+        title_text = f'Frame: {frame_num} | Timestamp : {time_display} | Period: {int(period)}'
         ax.set_title(title_text, fontsize=self.config['display']['title']['fontsize'], color=self.config['display']['title']['color'], pad=self.config['display']['title']['pad'])
         
         # Add legend
