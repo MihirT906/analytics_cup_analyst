@@ -297,7 +297,7 @@ class GameRenderer:
         
  
     
-    def plot_episode(self, match_id, start_frame, end_frame, delay=0.3):
+    def plot_episode(self, match_id, start_frame, end_frame, delay=0.0):
         '''
         Optimized function to plot an episode (sequence of frames) from start_frame to end_frame.
         Uses pre-computed event associations and avoids repeated data loading.
