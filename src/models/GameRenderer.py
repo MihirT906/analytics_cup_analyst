@@ -99,6 +99,17 @@ class GameRenderer:
         
         return fig, ax
 
+    def _get_team_color_mapping(self, enriched_data):
+        """
+        Create a consistent team name to color mapping based on first occurrence.
+        This ensures teams keep the same colors even when they switch sides.
+        """
+        if not hasattr(self, '_team_color_map'):
+            all_teams = sorted(enriched_data['team_name'].unique())  # Sort for consistency
+            colors = self.config['teams']['colors']
+            self._team_color_map = {team: colors[i % len(colors)] for i, team in enumerate(all_teams)}
+        return self._team_color_map
+
     def plot_frame(self, ax, enriched_data, frame_events, frame_num):
         '''
         Plots a single frame of the game.
@@ -144,7 +155,7 @@ class GameRenderer:
 
         # Plot configuration
         size = self.config['players']['styling']['size']
-        colors = self.config['teams']['colors']
+        team_color_map = self._get_team_color_mapping(enriched_data)
         teams = frame_data['team_name'].unique()
             
         # Use vectorized operations to create masks
@@ -153,8 +164,9 @@ class GameRenderer:
         engagement_mask = frame_data['player_id'].isin(engagement_player_ids)
         run_mask = frame_data['player_id'].isin(run_player_ids)
 
-        for i, team in enumerate(teams):
+        for team in teams:
             team_mask = frame_data['team_name'] == team
+            team_color = team_color_map[team]
             
             # Regular players (no special events)
             regular_mask = team_mask & ~possession_mask & ~passing_mask & ~engagement_mask
@@ -162,7 +174,7 @@ class GameRenderer:
             if not regular_players.empty:
                 for _, player in regular_players.iterrows():
                     marker = 's' if player['is_gk'] else 'o'
-                    ax.scatter(player['x'], player['y'], c=colors[i % len(colors)],
+                    ax.scatter(player['x'], player['y'], c=team_color,
                               alpha=self.config['players']['styling']['alpha'], s=self.config['players']['styling']['size'], edgecolors=self.config['players']['styling']['edgecolors'], linewidths=self.config['players']['styling']['edge_width'],
                               marker=marker, zorder=self.config['players']['styling']['z_order'])
 
@@ -171,7 +183,7 @@ class GameRenderer:
             if self.config['players']['events']['passing_options']['enabled'] == True and not passing_option_players.empty:
                 for _, player in passing_option_players.iterrows():
                     marker = 's' if player['is_gk'] else 'o'
-                    ax.scatter(player['x'], player['y'], c=colors[i % len(colors)],
+                    ax.scatter(player['x'], player['y'], c=team_color,
                               alpha=self.config['players']['styling']['alpha'], s=self.config['players']['styling']['size'], edgecolors=self.config['players']['events']['passing_options']['edge_color'], linewidths=self.config['players']['events']['passing_options']['edge_width'],
                               marker=marker, zorder=self.config['players']['events']['passing_options']['z_order'])
 
@@ -180,7 +192,7 @@ class GameRenderer:
             if self.config['players']['events']['on_ball_engagement']['enabled'] == True and not engagement_players.empty:
                 for _, player in engagement_players.iterrows():
                     marker = 's' if player['is_gk'] else 'o'
-                    ax.scatter(player['x'], player['y'], c=colors[i % len(colors)],
+                    ax.scatter(player['x'], player['y'], c=team_color,
                               alpha=self.config['players']['styling']['alpha'], s=self.config['players']['styling']['size'], edgecolors=self.config['players']['events']['on_ball_engagement']['edge_color'], linewidths=self.config['players']['events']['on_ball_engagement']['edge_width'],
                               marker=marker, zorder=self.config['players']['events']['on_ball_engagement']['z_order'])
             
@@ -190,7 +202,7 @@ class GameRenderer:
                 for _, player in possession_player.iterrows():
                     marker = 's' if player['is_gk'] else 'o'
                     marker_size = self.config['players']['styling']['size'] * self.config['players']['events']['possession']['size_multiplier']
-                    ax.scatter(player['x'], player['y'], c=colors[i % len(colors)],
+                    ax.scatter(player['x'], player['y'], c=team_color,
                               alpha=1.0, s=marker_size, edgecolors=self.config['players']['events']['possession']['edge_color'], linewidths=self.config['players']['events']['possession']['edge_width'],
                               marker=marker, zorder=self.config['players']['events']['possession']['z_order'])
 
@@ -265,9 +277,15 @@ class GameRenderer:
         
         # Add legend
         if self.config['legend']['enabled'] == True:
-            legend_elements = [
-                plt.scatter([], [], c=self.config['teams']['colors'][0], s=self.config['legend']['text_size'], edgecolors=self.config['players']['styling']['edgecolors'], linewidths=self.config['players']['styling']['edge_width'], label=teams[0]),
-                plt.scatter([], [], c=self.config['teams']['colors'][1], s=self.config['legend']['text_size'], edgecolors=self.config['players']['styling']['edgecolors'], linewidths=self.config['players']['styling']['edge_width'], label=teams[1]),
+            # Create team legend elements using the consistent color mapping
+            team_legend_elements = [
+                plt.scatter([], [], c=team_color_map[team], s=self.config['legend']['text_size'], 
+                           edgecolors=self.config['players']['styling']['edgecolors'], 
+                           linewidths=self.config['players']['styling']['edge_width'], label=team)
+                for team in sorted(teams)  # Sort for consistent legend order
+            ]
+            
+            legend_elements = team_legend_elements + [
                 plt.scatter([], [], c='gray', s=self.config['legend']['text_size'], edgecolors=self.config['players']['events']['possession']['edge_color'], linewidths=self.config['players']['events']['possession']['edge_width'], label='Player in Possession'),
                 plt.scatter([], [], c='gray', s=self.config['legend']['text_size'], edgecolors=self.config['players']['events']['passing_options']['edge_color'], linewidths=self.config['players']['events']['passing_options']['edge_width'], label='Passing Option'),
                 plt.scatter([], [], c='gray', s=self.config['legend']['text_size'], edgecolors=self.config['players']['events']['on_ball_engagement']['edge_color'], linewidths=self.config['players']['events']['on_ball_engagement']['edge_width'], label='On-Ball Engagement'),
