@@ -9,8 +9,116 @@ from collections import defaultdict
 from datetime import datetime, timedelta
 
 class GameRenderer:
-    def __init__(self):
+    def __init__(self, config=None):
         self.data_loader = DataLoader()
+        default_config = {
+            'display': {
+                'figsize': (14, 10),
+                'title': {
+                    'enabled': True,
+                    'fontsize': 14,
+                    'color': 'white',
+                    'pad': 25
+                }
+            },
+            'pitch': {
+                'type': "skillcorner",
+                'dimensions': {
+                    'length': 105,
+                    'width': 68
+                },
+                'styling': {
+                    'background_color': "#aabb97",
+                    'line_color': "white",
+                    'line_width': 1.5,
+                    'line_alpha': 0.75,
+                    'stripe_color': '#c2d59d',
+                    'show_stripes': True
+                }
+            },
+            'teams': {
+                    'colors': ["#5559DB", "#D56363"]
+                },
+            'players': {
+                'styling': {
+                    'size': 150,
+                    'alpha': 0.95,
+                    'edge_width': 1.5,
+                    'gk_size_multiplier': 1.2,
+                    'edgecolors': 'white',
+                    'marker': 'o',
+                    'z_order': 10
+                },
+                'events': {
+                    'possession': {
+                        'enabled': True,
+                        'size_multiplier': 1.3,
+                        'edge_color': 'white',
+                        'edge_width': 2.5,
+                        'z_order': 12
+                    },
+                    'passing_options': {
+                        'enabled': True,
+                        'edge_color': 'yellow',
+                        'edge_width': 2.5,
+                        'z_order': 11
+                    },
+                    'on_ball_engagement': {
+                        'enabled': True,
+                        'edge_color': 'black',
+                        'edge_width': 2.5,
+                        'z_order': 11
+                    },
+                    'off_ball_runs': {
+                        'enabled': True,
+                        'path_color': '#E5BA21',
+                        'alpha': 0.55,
+                        'path_width': 2,
+                        'path_style': '--',
+                        'start_marker_size': 0.5,
+                        'start_marker_alpha': 0.55,
+                        'z_order': 8
+                    }
+                }
+            },
+            'ball': {
+                'enabled': True,
+                'color': 'white',
+                'size': 100,
+                'edge_color': 'black',
+                'edge_width': 2,
+                'z_order': 15
+            },
+            'legend': {
+                'enabled': True,
+                'location': 'upper left',
+                'bbox_anchor': (0, 1),
+                'text_size': 100
+            }
+        }
+        if config:
+            self.config = config
+            self.config = self._merge_configs(default_config, self.config)
+        else:
+            self.config = default_config
+
+    def _merge_configs(self, default_config, user_config):
+        """
+        Recursively merge user configuration with default configuration.
+        User config values take precedence, but missing keys are filled from defaults.
+        """
+        import copy
+        merged = copy.deepcopy(default_config)
+        
+        for key, value in user_config.items():
+            if key in merged and isinstance(merged[key], dict) and isinstance(value, dict):
+                # Recursively merge nested dictionaries
+                merged[key] = self._merge_configs(merged[key], value)
+            else:
+                # Override with user value
+                merged[key] = value
+        
+        return merged
 
     def _precompute_event_associations(self, events_data):
         '''
@@ -51,15 +159,17 @@ class GameRenderer:
             This function creates a background soccer pitch using mplsoccer.
         '''
         pitch = Pitch(
-            pitch_type="skillcorner",
-            line_alpha=0.75,
-            pitch_length=105,
-            pitch_width=68,
-            pitch_color="#001400",
-            line_color="white",
-            linewidth=1.5,
+            pitch_type=self.config['pitch']['type'],
+            pitch_length=self.config['pitch']['dimensions']['length'],
+            pitch_width=self.config['pitch']['dimensions']['width'],
+            pitch_color=self.config['pitch']['styling']['background_color'],
+            line_color=self.config['pitch']['styling']['line_color'],
+            linewidth=self.config['pitch']['styling']['line_width'],
+            line_alpha=self.config['pitch']['styling']['line_alpha'],
+            stripe_color=self.config['pitch']['styling']['stripe_color'],
+            stripe=self.config['pitch']['styling']['show_stripes']
         )
-        fig, ax = pitch.draw(figsize=(14, 10))
+        fig, ax = pitch.draw(figsize=self.config['display']['figsize'])
         
         return fig, ax
 
@@ -94,19 +204,21 @@ class GameRenderer:
         
         # Recreate the pitch for this frame
         pitch = Pitch(
-            pitch_type="skillcorner",
-            line_alpha=0.75,
-            pitch_length=105,
-            pitch_width=68,
-            pitch_color="#001400",
-            line_color="white",
-            linewidth=1.5,
+            pitch_type=self.config['pitch']['type'],
+            pitch_length=self.config['pitch']['dimensions']['length'],
+            pitch_width=self.config['pitch']['dimensions']['width'],
+            pitch_color=self.config['pitch']['styling']['background_color'],
+            line_color=self.config['pitch']['styling']['line_color'],
+            linewidth=self.config['pitch']['styling']['line_width'],
+            line_alpha=self.config['pitch']['styling']['line_alpha'],
+            stripe_color=self.config['pitch']['styling']['stripe_color'],
+            stripe=self.config['pitch']['styling']['show_stripes']
         )
         pitch.draw(ax=ax)
 
         # Plot configuration
-        size = 300
-        colors = ['#084D42', '#E51717']  # Green for team 1, Red for team 2
+        size = self.config['players']['styling']['size']
+        colors = self.config['teams']['colors']
         teams = frame_data['team_name'].unique()
             
         # Use vectorized operations to create masks
@@ -126,38 +238,37 @@ class GameRenderer:
                 for _, player in regular_players.iterrows():
                     marker = 's' if player['is_gk'] else 'o'
                     ax.scatter(player['x'], player['y'], c=colors[i % len(colors)],
-                              alpha=0.95, s=size, edgecolors='white', linewidths=1.5, 
-                              marker=marker, zorder=10)
-            
+                              alpha=self.config['players']['styling']['alpha'], s=self.config['players']['styling']['size'], edgecolors=self.config['players']['styling']['edgecolors'], linewidths=self.config['players']['styling']['edge_width'],
+                              marker=marker, zorder=self.config['players']['styling']['z_order'])
+
             # Passing option players (yellow border)
             passing_option_players = frame_data[team_mask & passing_mask]
-            if not passing_option_players.empty:
+            if self.config['players']['events']['passing_options']['enabled'] == True and not passing_option_players.empty:
                 for _, player in passing_option_players.iterrows():
                     marker = 's' if player['is_gk'] else 'o'
                     ax.scatter(player['x'], player['y'], c=colors[i % len(colors)],
-                              alpha=0.95, s=size, edgecolors='yellow', linewidths=2.5,
-                              marker=marker, zorder=11)
-            
+                              alpha=self.config['players']['styling']['alpha'], s=self.config['players']['styling']['size'], edgecolors=self.config['players']['events']['passing_options']['edge_color'], linewidths=self.config['players']['events']['passing_options']['edge_width'],
+                              marker=marker, zorder=self.config['players']['events']['passing_options']['z_order'])
+
             # On-ball engagement players (black border and larger size)
             engagement_players = frame_data[team_mask & engagement_mask]
-            if not engagement_players.empty:
+            if self.config['players']['events']['on_ball_engagement']['enabled'] == True and not engagement_players.empty:
                 for _, player in engagement_players.iterrows():
                     marker = 's' if player['is_gk'] else 'o'
                     ax.scatter(player['x'], player['y'], c=colors[i % len(colors)],
-                              alpha=0.95, s=size, edgecolors='black', linewidths=2.5,
-                              marker=marker, zorder=11)
+                              alpha=self.config['players']['styling']['alpha'], s=self.config['players']['styling']['size'], edgecolors=self.config['players']['events']['on_ball_engagement']['edge_color'], linewidths=self.config['players']['events']['on_ball_engagement']['edge_width'],
+                              marker=marker, zorder=self.config['players']['events']['on_ball_engagement']['z_order'])
             
             # Player in possession (largest size and white border)
             possession_player = frame_data[team_mask & possession_mask]
-            if not possession_player.empty:
+            if self.config['players']['events']['possession']['enabled'] == True and not possession_player.empty:
                 for _, player in possession_player.iterrows():
                     marker = 's' if player['is_gk'] else 'o'
-                    base_size = size * 1.2 if player['is_gk'] else size
-                    marker_size = base_size * 1.3
+                    marker_size = self.config['players']['styling']['size'] * self.config['players']['events']['possession']['size_multiplier']
                     ax.scatter(player['x'], player['y'], c=colors[i % len(colors)],
-                              alpha=1.0, s=marker_size, edgecolors='white', linewidths=2.5,
-                              marker=marker, zorder=12)
-        
+                              alpha=1.0, s=marker_size, edgecolors=self.config['players']['events']['possession']['edge_color'], linewidths=self.config['players']['events']['possession']['edge_width'],
+                              marker=marker, zorder=self.config['players']['events']['possession']['z_order'])
+
         # Plot off ball runs for all teams
         if events['off_ball_runs']:
             run_players = frame_data[run_mask]
@@ -191,10 +302,10 @@ class GameRenderer:
                     # Plot trajectory line using transformed coordinates
                     ax.plot([x_start, runner['x']],
                            [y_start, runner['y']],
-                           color='#E5BA21', linewidth=2, linestyle='--', zorder=8)
+                           color=self.config['players']['events']['off_ball_runs']['path_color'], linewidth=2, linestyle='--', zorder=8)
                     # Plot start position
-                    ax.scatter(x_start, y_start, c='#E5BA21',
-                              alpha=0.55, s=size / 2, edgecolors='#E5BA21', linewidths=2.5, zorder=9)
+                    ax.scatter(x_start, y_start, c=self.config['players']['events']['off_ball_runs']['path_color'],
+                              alpha=self.config['players']['events']['off_ball_runs']['alpha'], s=size / 2, edgecolors=self.config['players']['styling']['edgecolors'], linewidths=self.config['players']['styling']['edge_width'], zorder=self.config['players']['events']['off_ball_runs']['z_order'])
         # Plot ball if available
         if 'ball_x' in frame_data.columns and not frame_data['ball_x'].isna().all():
             ball_data = frame_data[['ball_x', 'ball_y']].dropna()
@@ -202,11 +313,11 @@ class GameRenderer:
                 ax.scatter(
                     ball_data['ball_x'].iloc[0],
                     ball_data['ball_y'].iloc[0],
-                    c='white',
-                    s=100,
-                    edgecolors='black',
-                    linewidths=2,
-                    zorder=15
+                    c=self.config['ball']['color'],
+                    s=self.config['ball']['size'],
+                    edgecolors=self.config['ball']['edge_color'],
+                    linewidths=self.config['ball']['edge_width'],
+                    zorder=self.config['ball']['z_order']
                 )
         
         
@@ -225,26 +336,25 @@ class GameRenderer:
         
         # Create a more prominent title display
         title_text = f'Frame: {frame_num} | Time Elapsed: {time_display} | Period: {period}'
-        ax.set_title(title_text, fontsize=14, fontweight='bold', color='white', pad=25,
-                    bbox=dict(boxstyle="round,pad=0.5", facecolor='black', alpha=0.8))
+        ax.set_title(title_text, fontsize=self.config['display']['title']['fontsize'], color=self.config['display']['title']['color'], pad=self.config['display']['title']['pad'])
         
         # Add legend
-        legend_elements = [
-            plt.scatter([], [], c='#084D42', s=100, label='Team 1'),
-            plt.scatter([], [], c='#E51717', s=100, label='Team 2'),
-            plt.scatter([], [], c='gray', s=130, edgecolors='white', linewidths=3, label='Player in Possession'),
-            plt.scatter([], [], c='gray', s=100, edgecolors='yellow', linewidths=2.5, label='Passing Option'),
-            plt.scatter([], [], c='gray', s=130, edgecolors='black', linewidths=2.5, label='On-Ball Engagement'),
-            plt.scatter([], [], c='#E5BA21', s=50, edgecolors='#E5BA21', linewidths=2.5, label='Off-Ball Run Start'),
-            plt.Line2D([0], [0], color='#E5BA21', linewidth=2, linestyle='--', label='Off-Ball Run Path'),
-            plt.scatter([], [], c='white', s=50, edgecolors='black', label='Ball'),
-        ]
-        ax.legend(handles=legend_elements, loc='upper left', bbox_to_anchor=(0, 1))
+        if self.config['legend']['enabled'] == True:
+            legend_elements = [
+                plt.scatter([], [], c=self.config['teams']['colors'][0], s=self.config['legend']['text_size'], edgecolors=self.config['players']['styling']['edgecolors'], linewidths=self.config['players']['styling']['edge_width'], label=teams[0]),
+                plt.scatter([], [], c=self.config['teams']['colors'][1], s=self.config['legend']['text_size'], edgecolors=self.config['players']['styling']['edgecolors'], linewidths=self.config['players']['styling']['edge_width'], label=teams[1]),
+                plt.scatter([], [], c='gray', s=self.config['legend']['text_size'], edgecolors=self.config['players']['events']['possession']['edge_color'], linewidths=self.config['players']['events']['possession']['edge_width'], label='Player in Possession'),
+                plt.scatter([], [], c='gray', s=self.config['legend']['text_size'], edgecolors=self.config['players']['events']['passing_options']['edge_color'], linewidths=self.config['players']['events']['passing_options']['edge_width'], label='Passing Option'),
+                plt.scatter([], [], c='gray', s=self.config['legend']['text_size'], edgecolors=self.config['players']['events']['on_ball_engagement']['edge_color'], linewidths=self.config['players']['events']['on_ball_engagement']['edge_width'], label='On-Ball Engagement'),
+                plt.Line2D([0], [0], color=self.config['players']['events']['off_ball_runs']['path_color'], linestyle=self.config['players']['events']['off_ball_runs']['path_style'], label='Off-Ball Run Path'),
+                plt.scatter([], [], c='white', s=50, edgecolors='black', label='Ball'),
+            ]
+            ax.legend(handles=legend_elements, loc='upper left', bbox_to_anchor=(0, 1))
         return ax
         
  
     
-    def plot_episode(self, match_id, start_frame, end_frame, delay=0.3, plot_events=False):
+    def plot_episode(self, match_id, start_frame, end_frame, delay=0.3):
         '''
         Optimized function to plot an episode (sequence of frames) from start_frame to end_frame.
         Uses pre-computed event associations and avoids repeated data loading.
