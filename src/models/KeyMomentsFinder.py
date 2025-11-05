@@ -1,4 +1,5 @@
-
+import os
+import json
 from .DataLoader import DataLoader
 
 
@@ -72,6 +73,7 @@ class KeyMomentsFinder:
             column_aggregations = config['search_parameters'].get('column_aggregations', {})
             column_aggregations['frame_start'] = 'min'
             column_aggregations['frame_end'] = 'max'
+            column_aggregations['match_id'] = 'first'
             
             if not isinstance(start_buffer, (int, float)) or start_buffer < 0:
                 raise ValueError("start_buffer must be a non-negative number")
@@ -104,10 +106,37 @@ class KeyMomentsFinder:
                 
             if 'frame_end' in grouped_data.columns:
                 grouped_data['frame_end'] = grouped_data['frame_end'] + end_buffer
-            
+
+            # Save episodes if enabled
+            if config['save_parameters']['enabled']:
+                save_path = os.path.join(config['save_parameters']['save_path'], config['save_parameters']['name'])
+                self.save_episodes(grouped_data, save_path + '/')
+
             return grouped_data
             
         except (ValueError, TypeError, KeyError, AttributeError):
             raise
         except Exception as e:
-            raise RuntimeError(f"Failed to find key moments: {str(e)}") from e
+            raise RuntimeError(f"Failed to find or save key moments: {str(e)}") from e
+    
+    def save_episodes(self, episodes_df, folder_path):
+        '''
+            Saves the episodes as seperate JSON files in the specified folder.
+        '''
+        if episodes_df.empty:
+            raise ValueError("No episodes data to save")
+        
+        if not os.path.exists(folder_path):
+            os.makedirs(folder_path)
+        
+        for _, row in episodes_df.iterrows():
+            episode_id = row.get('Sequence_ID')
+
+            episode_data = {'episode_data': row.to_dict()}
+            file_path = os.path.join(folder_path, f"episode_{int(episode_id)}.json")
+            try:
+                with open(file_path, 'w') as f:
+                    json.dump(episode_data, f, indent=4)
+            except Exception as e:
+                raise RuntimeError(f"Failed to save episode {episode_id} to {file_path}: {str(e)}") from e
+            
