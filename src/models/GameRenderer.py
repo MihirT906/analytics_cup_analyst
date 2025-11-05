@@ -511,7 +511,29 @@ class GameRenderer:
             if delay > 0:
                 time.sleep(delay)
                     
-        return fig, ax
+        #return fig, ax
+    
+    def plot_saved_episode(self, episode_path, delay=0.0):
+        '''
+            Plot a saved episode from it's JSON file in the specified directory.
+        '''
+        # Check if file exists
+        if not os.path.exists(episode_path):
+            raise FileNotFoundError(f"Episode file not found: {episode_path}")
+        try:
+            with open(episode_path, 'r') as f:
+                episode_data = json.load(f)
+            
+            match_id = episode_data['episode_data']['match_id']
+            start_frame = episode_data['episode_data']['frame_start']
+            end_frame = episode_data['episode_data']['frame_end']
+            
+            self.plot_episode(match_id, start_frame, end_frame, delay)
+            
+        except Exception as e:
+            print(f"Error loading episode from {episode_path}: {e}")
+       
+        
     
     def clear_cache(self):
         '''
