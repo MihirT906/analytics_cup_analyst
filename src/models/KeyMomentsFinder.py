@@ -56,17 +56,22 @@ class KeyMomentsFinder:
             raise TypeError("config must be a dictionary")
         
         # Ensure required config keys are present
-        required_keys = ['match_id', 'sequence_func', 'column_aggregations']
-        missing_keys = [key for key in required_keys if key not in config]
+        required_search_keys = ['match_id', 'sequence_func', 'column_aggregations']
+        missing_keys = [key for key in required_search_keys if key not in config['search_parameters']]
         if missing_keys:
             raise ValueError(f"Missing required config keys: {missing_keys}")
             
         try:
-            match_id = config['match_id']
-            sequence_func = config['sequence_func']
-            start_buffer = config.get('start_buffer', 0)
-            end_buffer = config.get('end_buffer', 0)
-            column_aggregations = config.get('column_aggregations', {})
+            # Get search parameters
+            match_id = config['search_parameters']['match_id']
+            sequence_func = config['search_parameters']['sequence_func']
+            start_buffer = config['search_parameters'].get('start_buffer', 0)
+            end_buffer = config['search_parameters'].get('end_buffer', 0)
+            
+            # Get column aggregations
+            column_aggregations = config['search_parameters'].get('column_aggregations', {})
+            column_aggregations['frame_start'] = 'min'
+            column_aggregations['frame_end'] = 'max'
             
             if not isinstance(start_buffer, (int, float)) or start_buffer < 0:
                 raise ValueError("start_buffer must be a non-negative number")
