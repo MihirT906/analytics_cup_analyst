@@ -1,0 +1,10 @@
+{
+    "episode_data": {
+        "Sequence_ID": 3.0,
+        "lead_to_goal": false,
+        "team_shortname": "Auckland FC",
+        "frame_start": 5369,
+        "frame_end": 5525,
+        "match_id": 1886347
+    }
+}
