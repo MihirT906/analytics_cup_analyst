@@ -54,15 +54,19 @@ class GameRenderer:
         Get cached data or load and cache it for future use.
         '''
         if match_id not in self._data_cache:
-            enriched_data = self.data_loader.create_enriched_tracking_data(match_id)
-            events_data = self.data_loader.load_event_data(match_id)
-            frame_events = self._precompute_event_associations(events_data)
-            
-            self._data_cache[match_id] = {
+            try:
+                enriched_data = self.data_loader.create_enriched_tracking_data(match_id)
+                events_data = self.data_loader.load_event_data(match_id)
+                frame_events = self._precompute_event_associations(events_data)
+
+                self._data_cache[match_id] = {
                 'enriched_data': enriched_data,
                 'events_data': events_data,
                 'frame_events': frame_events
             }
+            except Exception as e:
+                print(f"Error loading data for match_id {match_id}: {e}")
+                raise e
         
         return self._data_cache[match_id]
 
