@@ -1,6 +1,6 @@
 {
     "display": {
-        "figsize": [5, 3.5],
+        "figsize": [6, 4],
         "title": {
             "enabled": true,
             "fontsize": 14,
@@ -28,9 +28,9 @@
     },
     "players": {
         "styling": {
-            "size": 8,
+            "size": 10,
             "alpha": 0.95,
-            "edge_width": 0.1,
+            "edge_width": 1,
             "gk_size_multiplier": 1.2,
             "edgecolors": "white",
             "marker": "o",
@@ -71,9 +71,9 @@
     "ball": {
         "enabled": true,
         "color": "white",
-        "size": 2,
+        "size": 5,
         "edge_color": "black",
-        "edge_width": 2,
+        "edge_width": 1,
         "z_order": 15
     },
     "legend": {

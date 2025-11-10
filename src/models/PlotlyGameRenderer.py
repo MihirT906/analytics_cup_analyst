@@ -1,4 +1,4 @@
-from mplsoccer.pitch import Pitch 
+from .Pitch import Pitch
 from .DataLoader import DataLoader
 from IPython.display import clear_output, display
 import time
@@ -117,86 +117,8 @@ class PlotlyGameRenderer:
         line_color = pitch_config['styling']['line_color']
         line_width = pitch_config['styling']['line_width']
         
-        fig = go.Figure()
-        
-        # Field outline
-        fig.add_shape(
-            type="rect",
-            x0=-length/2, y0=-width/2, x1=length/2, y1=width/2,
-            line=dict(color=line_color, width=line_width),
-            fillcolor=bg_color,
-            layer="below"
-        )
-        
-        # Center line
-        fig.add_shape(
-            type="line",
-            x0=0, y0=-width/2, x1=0, y1=width/2,
-            line=dict(color=line_color, width=line_width)
-        )
-        
-        # Center circle
-        fig.add_shape(
-            type="circle",
-            x0=-9.15, y0=-9.15, x1=9.15, y1=9.15,
-            line=dict(color=line_color, width=line_width),
-        )
-        
-        # Left penalty area
-        fig.add_shape(
-            type="rect",
-            x0=-length/2, y0=-20.15, x1=-length/2+16.5, y1=20.15,
-            line=dict(color=line_color, width=line_width),
-        )
-        
-        # Right penalty area
-        fig.add_shape(
-            type="rect",
-            x0=length/2-16.5, y0=-20.15, x1=length/2, y1=20.15,
-            line=dict(color=line_color, width=line_width),
-        )
-        
-        # Left goal area
-        fig.add_shape(
-            type="rect",
-            x0=-length/2, y0=-9.16, x1=-length/2+5.5, y1=9.16,
-            line=dict(color=line_color, width=line_width),
-        )
-        
-        # Right goal area
-        fig.add_shape(
-            type="rect",
-            x0=length/2-5.5, y0=-9.16, x1=length/2, y1=9.16,
-            line=dict(color=line_color, width=line_width),
-        )
-        
-        # Left goal
-        fig.add_shape(
-            type="rect",
-            x0=-length/2-2, y0=-3.66, x1=-length/2, y1=3.66,
-            line=dict(color=line_color, width=line_width),
-        )
-        
-        # Right goal
-        fig.add_shape(
-            type="rect",
-            x0=length/2, y0=-3.66, x1=length/2+2, y1=3.66,
-            line=dict(color=line_color, width=line_width),
-        )
-        
-        # Configure layout
-        figsize = self.config['display']['figsize']
-        fig.update_layout(
-            width=figsize[0]*100,
-            height=figsize[1]*100,
-            plot_bgcolor=bg_color,
-            paper_bgcolor=bg_color,
-            xaxis=dict(range=[-length/2-5, length/2+5], visible=False),
-            yaxis=dict(range=[-width/2-5, width/2+5], visible=False, scaleanchor="x", scaleratio=1),
-            showlegend=True,
-            margin=dict(l=0, r=0, t=30, b=30),
-            title=dict(x=0.5, xanchor='center')
-        )
+        pitch = Pitch()
+        fig = pitch.draw()
         
         return fig
 
