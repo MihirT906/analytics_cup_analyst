@@ -1,4 +1,4 @@
-from .Pitch import Pitch
+from .Pitch import PlotlyPitch
 from .DataLoader import DataLoader
 from IPython.display import clear_output, display
 import time
@@ -110,15 +110,9 @@ class PlotlyGameRenderer:
             This function creates a background soccer pitch using mplsoccer.
         '''
         # Get pitch configuration
-        pitch_config = self.config['pitch']
-        length = pitch_config['dimensions']['length']
-        width = pitch_config['dimensions']['width']
-        bg_color = pitch_config['styling']['background_color']
-        line_color = pitch_config['styling']['line_color']
-        line_width = pitch_config['styling']['line_width']
-        
-        pitch = Pitch()
-        fig = pitch.draw()
+        # pitch_config = self.config['pitch']
+        pitch = PlotlyPitch(self.config)
+        fig = pitch.draw_image()
         
         return fig
 
@@ -186,26 +180,9 @@ class PlotlyGameRenderer:
     def _clear_dynamic_elements(self, fig):
         '''
         Clear only dynamic elements (players and trajectories), preserve pitch elements.
+        The pitch image is stored in layout.images, so clearing fig.data is safe.
         '''
-        # Remove scatter plots but keep pitch-related collections
-        # collections_to_remove = []
-        # for collection in ax.collections:
-        #     # Keep pitch-related collections (lines, patches) but remove scatter plots
-        #     if hasattr(collection, '_sizes'):  # This identifies scatter plots
-        #         collections_to_remove.append(collection)
-        
-        # for collection in collections_to_remove:
-        #     collection.remove()
-        
-        # # Remove trajectory lines (but preserve pitch lines)
-        # lines_to_remove = []
-        # for line in ax.lines:
-        #     # Only remove dashed lines (trajectories), keep solid pitch lines
-        #     if line.get_linestyle() in ['--', ':']:
-        #         lines_to_remove.append(line)
-        
-        # for line in lines_to_remove:
-        #     line.remove()
+        # Clear all traces (scatter plots, lines, etc.) but preserve layout images (pitch)
         fig.data = []
 
     def plot_frame(self, fig, enriched_data, frame_events, frame_num):
@@ -628,28 +605,7 @@ class PlotlyGameRenderer:
         '''
         Add legend to the plot (only if not already cached).
         '''
-        # Add legend (only if not already cached)
-        if self.config['legend']['enabled'] and not hasattr(self, '_legend_created'):
-            team_color_map = self._get_team_color_mapping(enriched_data)
-            teams = frame_data['team_name'].unique()
-            
-            # Create team legend elements using the consistent color mapping
-            team_legend_elements = [
-                plt.scatter([], [], c=team_color_map[team], s=self.config['legend']['text_size'], 
-                           edgecolors=self.config['players']['styling']['edgecolors'], 
-                           linewidths=self.config['players']['styling']['edge_width'], label=team)
-                for team in sorted(teams)  # Sort for consistent legend order
-            ]
-            
-            legend_elements = team_legend_elements + [
-                plt.scatter([], [], c='gray', s=self.config['legend']['text_size'], edgecolors=self.config['players']['events']['possession']['edge_color'], linewidths=self.config['players']['events']['possession']['edge_width'], label='Player in Possession'),
-                plt.scatter([], [], c='gray', s=self.config['legend']['text_size'], edgecolors=self.config['players']['events']['passing_options']['edge_color'], linewidths=self.config['players']['events']['passing_options']['edge_width'], label='Passing Option'),
-                plt.scatter([], [], c='gray', s=self.config['legend']['text_size'], edgecolors=self.config['players']['events']['on_ball_engagement']['edge_color'], linewidths=self.config['players']['events']['on_ball_engagement']['edge_width'], label='On-Ball Engagement'),
-                plt.Line2D([0], [0], color=self.config['players']['events']['off_ball_runs']['path_color'], linestyle=self.config['players']['events']['off_ball_runs']['path_style'], label='Off-Ball Run Path'),
-                plt.scatter([], [], c=self.config['ball']['color'], s=self.config['legend']['text_size'], edgecolors=self.config['ball']['edge_color'], linewidths=self.config['ball']['edge_width'], label='Ball'),
-            ]
-            ax.legend(handles=legend_elements, loc='upper left', bbox_to_anchor=self.config['legend']['bbox_anchor'])
-            self._legend_created = True
+        pass
         
  
     
@@ -662,8 +618,6 @@ class PlotlyGameRenderer:
         cached_data = self._get_cached_data(match_id)
         enriched_data = cached_data['enriched_data']
         frame_events = cached_data['frame_events']
-        
-        print(self._get_team_color_mapping(enriched_data))
         
         # Collect frames within episode
         available_frames = sorted(enriched_data['frame'].unique())
@@ -680,15 +634,21 @@ class PlotlyGameRenderer:
         if hasattr(self, '_legend_created'):
             delattr(self, '_legend_created')
         
+        # Alternative: If display handle doesn't work, use optimized clear_output
         # Optimized animation loop - pitch is already drawn by create_pitch()
+        
         for frame_num in frames_to_plot:
-            # Pitch is already drawn, just plot the frame data
+            # Update the figure data for new frame
             self.plot_frame(fig, enriched_data, frame_events, frame_num)
+            
+            # Use clear_output with wait=True to minimize blank time
             clear_output(wait=True)
             display(fig)
             
             if delay > 0:
                 time.sleep(delay)
+            else:
+                time.sleep(0.01)
                     
         #return fig, ax
     
