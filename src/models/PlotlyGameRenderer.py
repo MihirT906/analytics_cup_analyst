@@ -266,12 +266,6 @@ class PlotlyGameRenderer:
                     showlegend=False,
                     hoverinfo='skip'
                 ))
-                # ax.scatter(regular_field_players['x'], regular_field_players['y'], 
-                #           c=team_color, alpha=self.config['players']['styling']['alpha'], 
-                #           s=self.config['players']['styling']['size'], 
-                #           edgecolors=self.config['players']['styling']['edgecolors'], 
-                #           linewidths=self.config['players']['styling']['edge_width'],
-                #           marker='o', zorder=self.config['players']['styling']['z_order'])
             
             # Regular goalkeepers (no special events)
             regular_gk_mask = gk_mask & ~possession_mask[team_mask] & ~passing_mask[team_mask] & ~engagement_mask[team_mask]
@@ -295,12 +289,6 @@ class PlotlyGameRenderer:
                     showlegend=False,
                     hoverinfo='skip'
                 ))
-                # ax.scatter(regular_gk_players['x'], regular_gk_players['y'], 
-                #           c=team_color, alpha=self.config['players']['styling']['alpha'], 
-                #           s=self.config['players']['styling']['size'], 
-                #           edgecolors=self.config['players']['styling']['edgecolors'], 
-                #           linewidths=self.config['players']['styling']['edge_width'],
-                #           marker='s', zorder=self.config['players']['styling']['z_order'])
 
             # Passing option players - field players
             if self.config['players']['events']['passing_options']['enabled']:
@@ -324,12 +312,6 @@ class PlotlyGameRenderer:
                         showlegend=False,
                         hoverinfo='skip'
                     ))
-                    # ax.scatter(passing_field_players['x'], passing_field_players['y'], 
-                    #           c=team_color, alpha=self.config['players']['styling']['alpha'], 
-                    #           s=self.config['players']['styling']['size'], 
-                    #           edgecolors=self.config['players']['events']['passing_options']['edge_color'], 
-                    #           linewidths=self.config['players']['events']['passing_options']['edge_width'],
-                    #           marker='o', zorder=self.config['players']['events']['passing_options']['z_order'])
 
                 # Passing option goalkeepers
                 passing_gk_mask = gk_mask & passing_mask[team_mask]
@@ -353,12 +335,6 @@ class PlotlyGameRenderer:
                         showlegend=False,
                         hoverinfo='skip'
                     ))
-                    # ax.scatter(passing_gk_players['x'], passing_gk_players['y'], 
-                    #           c=team_color, alpha=self.config['players']['styling']['alpha'], 
-                    #           s=self.config['players']['styling']['size'], 
-                    #           edgecolors=self.config['players']['events']['passing_options']['edge_color'], 
-                    #           linewidths=self.config['players']['events']['passing_options']['edge_width'],
-                    #           marker='s', zorder=self.config['players']['events']['passing_options']['z_order'])
 
             # On-ball engagement players - field players
             if self.config['players']['events']['on_ball_engagement']['enabled']:
@@ -382,12 +358,6 @@ class PlotlyGameRenderer:
                         showlegend=False,
                         hoverinfo='skip'
                     ))
-                    # ax.scatter(engagement_field_players['x'], engagement_field_players['y'], 
-                    #           c=team_color, alpha=self.config['players']['styling']['alpha'], 
-                    #           s=self.config['players']['styling']['size'], 
-                    #           edgecolors=self.config['players']['events']['on_ball_engagement']['edge_color'], 
-                    #           linewidths=self.config['players']['events']['on_ball_engagement']['edge_width'],
-                    #           marker='o', zorder=self.config['players']['events']['on_ball_engagement']['z_order'])
                 
                 # On-ball engagement goalkeepers
                 engagement_gk_mask = gk_mask & engagement_mask[team_mask]
@@ -411,12 +381,6 @@ class PlotlyGameRenderer:
                         showlegend=False,
                         hoverinfo='skip'
                     ))
-                    # ax.scatter(engagement_gk_players['x'], engagement_gk_players['y'], 
-                    #           c=team_color, alpha=self.config['players']['styling']['alpha'], 
-                    #           s=self.config['players']['styling']['size'], 
-                    #           edgecolors=self.config['players']['events']['on_ball_engagement']['edge_color'], 
-                    #           linewidths=self.config['players']['events']['on_ball_engagement']['edge_width'],
-                    #           marker='s', zorder=self.config['players']['events']['on_ball_engagement']['z_order'])
             
             # Player in possession - field players
             if self.config['players']['events']['possession']['enabled']:
@@ -440,11 +404,6 @@ class PlotlyGameRenderer:
                         showlegend=False,
                         hoverinfo='skip'
                     ))
-                    # ax.scatter(possession_field_players['x'], possession_field_players['y'], 
-                    #           c=team_color, alpha=1.0, s=marker_size, 
-                    #           edgecolors=self.config['players']['events']['possession']['edge_color'], 
-                    #           linewidths=self.config['players']['events']['possession']['edge_width'],
-                    #           marker='o', zorder=self.config['players']['events']['possession']['z_order'])
 
                 # Player in possession - goalkeepers
                 possession_gk_mask = gk_mask & possession_mask[team_mask]
@@ -469,11 +428,6 @@ class PlotlyGameRenderer:
                         showlegend=False,
                         hoverinfo='skip'
                     ))
-                    # ax.scatter(possession_gk_players['x'], possession_gk_players['y'], 
-                    #           c=team_color, alpha=1.0, s=marker_size, 
-                    #           edgecolors=self.config['players']['events']['possession']['edge_color'], 
-                    #           linewidths=self.config['players']['events']['possession']['edge_width'],
-                    #           marker='s', zorder=self.config['players']['events']['possession']['z_order'])
 
     def _plot_off_ball_runs(self, fig, frame_data, events, masks):
         '''
@@ -524,9 +478,6 @@ class PlotlyGameRenderer:
                         showlegend=False,
                         hoverinfo='skip'
                     ))
-                    # ax.plot([x_start, runner['x']],
-                    #        [y_start, runner['y']],
-                    #        color=self.config['players']['events']['off_ball_runs']['path_color'], linewidth=2, linestyle='--', zorder=8)
                     # Plot start position
                     fig.add_trace(go.Scatter(
                         x=[x_start],
@@ -544,9 +495,7 @@ class PlotlyGameRenderer:
                         showlegend=False,
                         hoverinfo='skip'
                     ))
-                    # ax.scatter(x_start, y_start, c=self.config['players']['events']['off_ball_runs']['path_color'],
-                    #           alpha=self.config['players']['events']['off_ball_runs']['alpha'], s=self.config['players']['styling']['size'] / 2, edgecolors=self.config['players']['styling']['edgecolors'], linewidths=self.config['players']['styling']['edge_width'], zorder=self.config['players']['events']['off_ball_runs']['z_order'])
-
+                    
     def _plot_ball(self, fig, frame_data):
         '''
         Plot the ball if available.
@@ -570,15 +519,6 @@ class PlotlyGameRenderer:
                     showlegend=False,
                     hoverinfo='skip'
                 ))
-                # ax.scatter(
-                #     ball_data['ball_x'].iloc[0],
-                #     ball_data['ball_y'].iloc[0],
-                #     c=self.config['ball']['color'],
-                #     s=self.config['ball']['size'],
-                #     edgecolors=self.config['ball']['edge_color'],
-                #     linewidths=self.config['ball']['edge_width'],
-                #     zorder=self.config['ball']['z_order']
-                # )
 
     def _add_frame_title(self, fig, frame_data, frame_num):
         '''
