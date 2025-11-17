@@ -1,5 +1,5 @@
 import plotly.graph_objects as go
-from mplsoccer.pitch import Pitch 
+from mplsoccer import Pitch 
 import os
 import json
 from PIL import Image

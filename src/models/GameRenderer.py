@@ -1,4 +1,4 @@
-from mplsoccer.pitch import Pitch 
+from mplsoccer import Pitch 
 from .DataLoader import DataLoader
 from IPython.display import clear_output, display
 import time
