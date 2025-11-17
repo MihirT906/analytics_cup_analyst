@@ -13,6 +13,7 @@ import plotly.graph_objects as go
 class PlotlyGameRenderer:
     def __init__(self, config_file=None):
         self.data_loader = DataLoader()
+        self.is_paused = True
         
         # Load default configuration from JSON file
         default_config_path = os.path.join(os.path.dirname(__file__), '..', 'config', 'default_game_renderer_config.json')
@@ -579,6 +580,9 @@ class PlotlyGameRenderer:
         
         for frame_num in frames_to_plot:
             # Update the figure data for new frame
+            while self.is_paused:
+                time.sleep(0.1)
+                
             self.plot_frame(fig, enriched_data, frame_events, frame_num)
             
             # Use clear_output with wait=True to minimize blank time
@@ -592,6 +596,16 @@ class PlotlyGameRenderer:
                     
         #return fig, ax
     
+    def toggle_pause_play(self):
+        '''
+        Toggle between pause and play states.
+        '''
+        self.is_paused = not self.is_paused
+        if self.is_paused:
+            print("Playback paused")
+        else:
+            print("Playback resumed")
+
     def plot_saved_episode(self, episode_path, delay=0.0):
         '''
             Plot a saved episode from it's JSON file in the specified directory.
