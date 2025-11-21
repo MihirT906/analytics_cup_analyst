@@ -11,10 +11,11 @@ from collections import defaultdict
 import plotly.graph_objects as go
 
 class PlotlyGameRenderer:
-    def __init__(self, config_file=None):
+    def __init__(self, config_file=None, is_streamlit=False):
         self.data_loader = DataLoader()
         self.is_paused = True
-        
+        self.is_streamlit = is_streamlit
+
         # Load default configuration from JSON file
         default_config_path = os.path.join(os.path.dirname(__file__), '..', 'config', 'default_game_renderer_config.json')
         with open(default_config_path, 'r') as f:
@@ -577,24 +578,31 @@ class PlotlyGameRenderer:
         
         # Alternative: If display handle doesn't work, use optimized clear_output
         # Optimized animation loop - pitch is already drawn by create_pitch()
-        
+        figs = []
         for frame_num in frames_to_plot:
             # Update the figure data for new frame
-            while self.is_paused:
-                time.sleep(0.1)
+            # while self.is_paused:
+            #     time.sleep(0.1)
                 
-            self.plot_frame(fig, enriched_data, frame_events, frame_num)
+            fig = self.plot_frame(fig, enriched_data, frame_events, frame_num)
             
             # Use clear_output with wait=True to minimize blank time
             clear_output(wait=True)
-            display(fig)
-            
+            if self.is_streamlit:
+                # Create a deep copy of the figure to avoid all references pointing to the same object
+                import copy
+                figs.append(copy.deepcopy(fig))
+            else:
+                display(fig)
+
             if delay > 0:
                 time.sleep(delay)
             else:
                 time.sleep(0.01)
                     
         #return fig, ax
+        if self.is_streamlit:
+            return figs
     
     def toggle_pause_play(self):
         '''
