@@ -177,9 +177,10 @@ def control_animation(play_clicks, pause_clicks, reset_clicks):
 # Callback to update the figure
 @app.callback(
     [Output('animated-figure', 'figure')],
-    [Input('animation-interval', 'n_intervals')]
+    [Input('animation-interval', 'n_intervals')],
+    [State('animated-figure', 'figure')]
 )
-def update_figure(n_intervals):
+def update_figure(n_intervals, current_figure):
     if len(figures) == 0:
         return [{}]
     
@@ -191,9 +192,15 @@ def update_figure(n_intervals):
     
     # Convert Figure to dict and then copy
     figure_dict = figures[figure_index].to_dict() if hasattr(figures[figure_index], 'to_dict') else dict(figures[figure_index])
-    current_figure = copy.deepcopy(figure_dict)
+    updated_figure = copy.deepcopy(figure_dict)
     
-    return [current_figure]
+    # Preserve any existing annotations (shapes) from the current figure
+    if current_figure and 'layout' in current_figure and 'shapes' in current_figure['layout']:
+        if 'layout' not in updated_figure:
+            updated_figure['layout'] = {}
+        updated_figure['layout']['shapes'] = current_figure['layout']['shapes']
+    
+    return [updated_figure]
 
 # Callback to capture and display annotations
 @app.callback(
@@ -239,10 +246,10 @@ def display_annotations(relayout_data, clear_clicks):
                 annotations_text += "\n"
             
             # Print to console
-            print("\n=== USER ANNOTATIONS ===")
-            print(annotations_text)
-            print(f"Raw annotation data:\n{json.dumps(shapes, indent=2)}")
-            print("========================\n")
+            # print("\n=== USER ANNOTATIONS ===")
+            # print(annotations_text)
+            # print(f"Raw annotation data:\n{json.dumps(shapes, indent=2)}")
+            # print("========================\n")
             
             return annotations_text
         else:
@@ -261,8 +268,10 @@ def clear_graph_annotations(clear_clicks, current_figure):
     if clear_clicks and current_figure:
         # Remove all shapes from the figure
         updated_figure = copy.deepcopy(current_figure)
-        if 'layout' in updated_figure and 'shapes' in updated_figure['layout']:
+        if 'layout' in updated_figure:
             updated_figure['layout']['shapes'] = []
+        else:
+            updated_figure['layout'] = {'shapes': []}
         return updated_figure
     return no_update
 
