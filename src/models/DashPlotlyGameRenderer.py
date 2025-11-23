@@ -249,6 +249,9 @@ class DashPlotlyGameRenderer:
             regular_field_players = team_data[regular_field_mask]
             
             if not regular_field_players.empty:
+                # Create player IDs for identification
+                player_ids = [f"{row['team_name']}_{row['player_id']}" for _, row in regular_field_players.iterrows()]
+                
                 fig.add_trace(go.Scatter(
                     x=regular_field_players['x'],
                     y=regular_field_players['y'],
@@ -263,8 +266,10 @@ class DashPlotlyGameRenderer:
                         ),
                         symbol='circle'
                     ),
+                    customdata=player_ids,
+                    hovertemplate='<b>Player:</b> %{customdata}<br><b>Position:</b> (%{x:.1f}, %{y:.1f})<extra></extra>',
                     showlegend=False,
-                    hoverinfo='skip'
+                    name='field_players'
                 ))
             
             # Regular goalkeepers (no special events)
@@ -272,6 +277,9 @@ class DashPlotlyGameRenderer:
             regular_gk_players = team_data[regular_gk_mask]
             
             if not regular_gk_players.empty:
+                # Create player IDs for identification
+                gk_player_ids = [f"{row['team_name']}_{row['player_id']}" for _, row in regular_gk_players.iterrows()]
+                
                 fig.add_trace(go.Scatter(
                     x=regular_gk_players['x'],
                     y=regular_gk_players['y'],
@@ -286,8 +294,10 @@ class DashPlotlyGameRenderer:
                         ),
                         symbol='square'
                     ),
+                    customdata=gk_player_ids,
+                    hovertemplate='<b>GK:</b> %{customdata}<br><b>Position:</b> (%{x:.1f}, %{y:.1f})<extra></extra>',
                     showlegend=False,
-                    hoverinfo='skip'
+                    name='goalkeepers'
                 ))
 
             # Passing option players - field players
