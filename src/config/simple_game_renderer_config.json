@@ -1,6 +1,6 @@
 {
     "display": {
-        "figsize": [10, 7],
+        "figsize": [14, 10],
         "title": {
             "enabled": true,
             "fontsize": 14,
@@ -80,6 +80,6 @@
         "enabled": true,
         "location": "upper left",
         "bbox_anchor": [0, 1],
-        "text_size": 100
+        "text_size": 50
     }
 }
