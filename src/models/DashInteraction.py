@@ -297,22 +297,23 @@ class DashInteraction:
             updated_figure = copy.deepcopy(figure_dict)
             
             # Preserve any existing annotations (shapes) from the current figure or from the annotation store
-            if self.is_recording:
-                if self.annotation_store:
-                    active_shapes = []
-                    for shape_hash, shape_dict in self.annotation_store.items():
-                        frame_end = shape_dict.get('frame_end')
-                        if not frame_end:  # Ongoing shape
-                            active_shapes.append(shape_dict['shape'])
-                    if active_shapes:
-                        if 'layout' not in updated_figure:
-                            updated_figure['layout'] = {}
-                        updated_figure['layout']['shapes'] = active_shapes
-            else:
-                if current_figure and 'layout' in current_figure and 'shapes' in current_figure['layout']:
+            if self.annotation_store:
+                active_shapes = []
+                for shape_hash, shape_dict in self.annotation_store.items():
+                    frame_start = shape_dict.get('frame_start')
+                    frame_end = shape_dict.get('frame_end')
+                    current_frame = self._get_current_frame_number(n_intervals or 0)
+                    if frame_start < current_frame and (frame_end is None or frame_end > current_frame):  # Ongoing shape
+                        active_shapes.append(shape_dict['shape'])
+                if active_shapes:
                     if 'layout' not in updated_figure:
                         updated_figure['layout'] = {}
-                    updated_figure['layout']['shapes'] = current_figure['layout']['shapes']
+                    updated_figure['layout']['shapes'] = active_shapes
+            # else:
+            #     if current_figure and 'layout' in current_figure and 'shapes' in current_figure['layout']:
+            #         if 'layout' not in updated_figure:
+            #             updated_figure['layout'] = {}
+            #         updated_figure['layout']['shapes'] = current_figure['layout']['shapes']
             
             ctx = callback_context
             button_id = ctx.triggered_id
@@ -359,7 +360,7 @@ class DashInteraction:
                             self.annotation_store[shape_hash] = shape_dict
 
                 print("Annotation Store: ", self._display_annotation_store())
-                return ["Annotation Captured"]
+                return ["Annotations Captured:\n" + self._display_annotation_store()]
             else:
                 return ["Recording is OFF. Click REC to start recording annotations."]
     
