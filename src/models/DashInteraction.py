@@ -226,10 +226,11 @@ class DashInteraction:
         
         @self.app.callback(
             [Output('animated-figure', 'figure')],
-            [Input('animation-interval', 'n_intervals')],
+            [Input('animation-interval', 'n_intervals'), 
+             Input('clear-annotations', 'n_clicks')],
             [State('animated-figure', 'figure')]
         )
-        def update_figure(n_intervals, current_figure):
+        def update_figure(n_intervals, clear_clicks, current_figure):
             len_figures = len(self.figures)
             if len_figures == 0:
                 return [{}]
@@ -248,6 +249,14 @@ class DashInteraction:
                     updated_figure['layout'] = {}
                 updated_figure['layout']['shapes'] = current_figure['layout']['shapes']
             
+            ctx = callback_context
+            button_id = ctx.triggered_id
+            if button_id == 'clear-annotations':
+                print("Clearing annotations from figure via animation callback")
+                self.annotation_store = {}
+                if current_figure and 'layout' in current_figure and 'shapes' in current_figure['layout']:
+                    updated_figure['layout']['shapes'] = []
+                    
             return [updated_figure]
 
     def add_annotation_callback(self):
@@ -267,8 +276,9 @@ class DashInteraction:
             button_id = ctx.triggered_id
             current_frame = self._get_current_frame_number(n_intervals or 0)
 
-            if button_id == 'clear-annotations':
-                print("Clearing all annotations")
+            # if button_id == 'clear-annotations':
+            #     self.annotation_store = {}
+            #     return ["Cleared Annotations"]
             
             if relayout_data and 'shapes' in relayout_data:
                 current_shapes = relayout_data['shapes']
@@ -288,7 +298,6 @@ class DashInteraction:
 
             print("Annotation Store: ", self._display_annotation_store())
             return ["Done"]
-
     
     def create_app(self):
         # Create App
