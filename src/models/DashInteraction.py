@@ -10,6 +10,7 @@ class DashInteraction:
         self.episode_file = episode_file
         self.figures = None
         self.app = None
+        self.is_recording = False
         self.annotation_store = {}
 
     def _display_annotation_store(self):
@@ -74,7 +75,7 @@ class DashInteraction:
     
     def _create_header(self):
         """ Create header section of the Dash app """
-        return html.Div([
+        return html.Div(id='header', children=[
             html.H1("Interactive Episode Studio", style={'textAlign': 'center'}),
             html.H2(f"Match ID: {self.episode_data['match_id']}", style={'textAlign': 'center'}),
             html.H2(f"Frame Range: {self.episode_data['frame_start']} - {self.episode_data['frame_end']}", style={'textAlign': 'center'}),
@@ -82,6 +83,15 @@ class DashInteraction:
     
     def _create_plot_controls(self):
         """ Create plot control buttons """
+        record_button = html.Button('REC', id='record-button', n_clicks=0, style={
+                    'backgroundColor': "#ff0000",
+                    'color': 'white',
+                    'border': 'none',
+                    'padding': '10px 20px',
+                    'margin': '10px 5px',
+                    'borderRadius': '5px',
+                    'cursor': 'pointer'
+                })
         play_button = html.Button('Play', id='play-button', n_clicks=0, style={
                     'backgroundColor': '#28a745',
                     'color': 'white',
@@ -92,7 +102,7 @@ class DashInteraction:
                     'cursor': 'pointer'
                 })
         pause_button = html.Button('Pause', id='pause-button', n_clicks=0, style={
-                    'backgroundColor': '#dc3545',
+                    'backgroundColor': "#e9cb09",
                     'color': 'white',
                     'border': 'none',
                     'padding': '10px 20px',
@@ -109,7 +119,7 @@ class DashInteraction:
                     'borderRadius': '5px',
                     'cursor': 'pointer'
                 })
-        return html.Div([play_button, pause_button, reset_button], style={'textAlign': 'center'})
+        return html.Div(id='plot-controls', children=[record_button, play_button, pause_button, reset_button], style={'textAlign': 'center'})
     
     def _create_plot_area(self):
         """ Create plot area with graph and interval component """
@@ -150,9 +160,9 @@ class DashInteraction:
             max_intervals=len(self.figures),  # Play once through all figures
             disabled=True  # Start paused
         )
-        return html.Div([current_frame_display, graph_display, interval])
-    
-    
+        return html.Div(id='plot-area', children=[current_frame_display, graph_display, interval])
+
+
     def _create_annotation_area(self):
         clear_annotations_button = html.Button('Clear Annotations', id='clear-annotations', n_clicks=0, style={
                         'backgroundColor': '#ffc107',
@@ -175,12 +185,12 @@ class DashInteraction:
                     'fontSize': '12px',
                     'margin': '10px'
                 }, children="No annotations yet. Start drawing on the graph!")
-        
-        return html.Div([clear_annotations_button, annotations_display], style={'textAlign': 'center'})
-        
-    
+
+        return html.Div(id='annotation-area', children=[clear_annotations_button, annotations_display], style={'textAlign': 'center'})
+
+
     def _create_layout(self):
-        return html.Div([
+        return html.Div(id='main-layout', children=[
                 self._create_header(), 
                 self._create_plot_controls(),
                 self._create_plot_area(),
@@ -189,6 +199,21 @@ class DashInteraction:
     
     def _add_control_animation_callback(self):
         """ Add callback to control animation playback """
+        
+        @self.app.callback(
+            [Output('plot-area', 'style'),
+             Output('record-button', 'children')],
+            [Input('record-button', 'n_clicks')]
+        )
+        def toggle_recording(n_clicks):
+            if n_clicks % 2 == 1:
+                self.is_recording = True
+                return [{'border': '5px solid red'}, 'STOP']
+            else:
+                self.is_recording = False
+                return [{'border': 'none'}, 'REC']
+
+
         @self.app.callback(    
             [Output('animation-interval', 'disabled'),
              Output('animation-interval', 'n_intervals')],
@@ -214,7 +239,7 @@ class DashInteraction:
             
             return True, 0
     
-    def add_animation_callback(self):
+    def _add_animation_callback(self):
         """ Add callback to update figure based on animation interval """
         @self.app.callback(
             Output('current-frame-display', 'children'),
@@ -228,9 +253,10 @@ class DashInteraction:
             [Output('animated-figure', 'figure')],
             [Input('animation-interval', 'n_intervals'), 
              Input('clear-annotations', 'n_clicks')],
-            [State('animated-figure', 'figure')]
+            [State('animated-figure', 'figure'),
+             State('record-button', 'n_clicks')],
         )
-        def update_figure(n_intervals, clear_clicks, current_figure):
+        def update_figure(n_intervals, clear_clicks, current_figure, record_clicks):
             len_figures = len(self.figures)
             if len_figures == 0:
                 return [{}]
@@ -243,11 +269,23 @@ class DashInteraction:
             figure_dict = self.figures[figure_index].to_dict() if hasattr(self.figures[figure_index], 'to_dict') else dict(self.figures[figure_index])
             updated_figure = copy.deepcopy(figure_dict)
             
-            # Preserve any existing annotations (shapes) from the current figure
-            if current_figure and 'layout' in current_figure and 'shapes' in current_figure['layout']:
-                if 'layout' not in updated_figure:
-                    updated_figure['layout'] = {}
-                updated_figure['layout']['shapes'] = current_figure['layout']['shapes']
+            # Preserve any existing annotations (shapes) from the current figure or from the annotation store
+            if self.is_recording:
+                if self.annotation_store:
+                    active_shapes = []
+                    for shape_hash, shape_dict in self.annotation_store.items():
+                        frame_end = shape_dict.get('frame_end')
+                        if not frame_end:  # Ongoing shape
+                            active_shapes.append(shape_dict['shape'])
+                    if active_shapes:
+                        if 'layout' not in updated_figure:
+                            updated_figure['layout'] = {}
+                        updated_figure['layout']['shapes'] = active_shapes
+            else:
+                if current_figure and 'layout' in current_figure and 'shapes' in current_figure['layout']:
+                    if 'layout' not in updated_figure:
+                        updated_figure['layout'] = {}
+                    updated_figure['layout']['shapes'] = current_figure['layout']['shapes']
             
             ctx = callback_context
             button_id = ctx.triggered_id
@@ -259,7 +297,7 @@ class DashInteraction:
                     
             return [updated_figure]
 
-    def add_annotation_callback(self):
+    def _add_annotation_callback(self):
         @self.app.callback(
             [Output('annotations-display', 'children')],
             [Input('animated-figure', 'relayoutData'),
@@ -268,36 +306,35 @@ class DashInteraction:
             prevent_initial_call=True
         )
         def capture_annotations(relayout_data, clear_clicks, n_intervals):
-            print("Annotation callback triggered")
-            ctx = callback_context
-            if not ctx.triggered:
-                return ["No annotations yet. Start drawing on the graph!"]
-            
-            button_id = ctx.triggered_id
-            current_frame = self._get_current_frame_number(n_intervals or 0)
+            if self.is_recording:
+                print("Annotation callback triggered")
+                ctx = callback_context
+                if not ctx.triggered:
+                    return ["No annotations yet. Start drawing on the graph!"]
+                
+                button_id = ctx.triggered_id
+                current_frame = self._get_current_frame_number(n_intervals or 0)
+                
+                if relayout_data and 'shapes' in relayout_data:
+                    current_shapes = relayout_data['shapes']
+                    current_shapes_hashes = [self._get_shape_hash(shape) for shape in current_shapes]
+                    stored_shapes_hashes = self.annotation_store.keys()
+                    # Store new shapes in annotation store
+                    for shape in current_shapes:
+                        shape_hash = self._get_shape_hash(shape)
+                        if shape_hash not in self.annotation_store:
+                            self.annotation_store[shape_hash] = {'frame_start': current_frame, 'frame_end': None, 'shape': shape}
+                    # End shapes that are no longer present
+                    removed_shape_hashes = stored_shapes_hashes - current_shapes_hashes
+                    for shape_hash, shape_dict in list(self.annotation_store.items()):
+                        if (shape_hash in removed_shape_hashes) and (shape_dict['frame_end'] is None):
+                            shape_dict['frame_end'] = current_frame
+                            self.annotation_store[shape_hash] = shape_dict
 
-            # if button_id == 'clear-annotations':
-            #     self.annotation_store = {}
-            #     return ["Cleared Annotations"]
-            
-            if relayout_data and 'shapes' in relayout_data:
-                current_shapes = relayout_data['shapes']
-                current_shapes_hashes = [self._get_shape_hash(shape) for shape in current_shapes]
-                stored_shapes_hashes = self.annotation_store.keys()
-                # Store new shapes in annotation store
-                for shape in current_shapes:
-                    shape_hash = self._get_shape_hash(shape)
-                    if shape_hash not in self.annotation_store:
-                        self.annotation_store[shape_hash] = {'frame_start': current_frame, 'frame_end': None, 'shape': shape}
-                # End shapes that are no longer present
-                removed_shape_hashes = stored_shapes_hashes - current_shapes_hashes
-                for shape_hash, shape_dict in list(self.annotation_store.items()):
-                    if (shape_hash in removed_shape_hashes) and (shape_dict['frame_end'] is None):
-                        shape_dict['frame_end'] = current_frame
-                        self.annotation_store[shape_hash] = shape_dict
-
-            print("Annotation Store: ", self._display_annotation_store())
-            return ["Done"]
+                print("Annotation Store: ", self._display_annotation_store())
+                return ["Annotation Captured"]
+            else:
+                return ["Recording is OFF. Click REC to start recording annotations."]
     
     def create_app(self):
         # Create App
@@ -307,6 +344,6 @@ class DashInteraction:
         self.app.layout = self._create_layout()
         # Add callbacks
         self._add_control_animation_callback()
-        self.add_animation_callback()
-        self.add_annotation_callback()
+        self._add_animation_callback()
+        self._add_annotation_callback()
         return self.app
