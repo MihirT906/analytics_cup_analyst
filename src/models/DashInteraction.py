@@ -11,6 +11,7 @@ class DashInteraction:
         self.figures = None
         self.app = None
         self.is_recording = False
+        self.last_recorded_interval = None
         self.annotation_store = {}
 
     def _display_annotation_store(self):
@@ -203,11 +204,13 @@ class DashInteraction:
         @self.app.callback(
             [Output('plot-area', 'style'),
              Output('record-button', 'children')],
-            [Input('record-button', 'n_clicks')]
+            [Input('record-button', 'n_clicks'),
+             Input('animation-interval', 'n_intervals')]
         )
-        def toggle_recording(n_clicks):
+        def toggle_recording(n_clicks, n_intervals):
             if n_clicks % 2 == 1:
                 self.is_recording = True
+                self.last_recorded_interval = n_intervals
                 return [{'border': '5px solid red'}, 'STOP']
             else:
                 self.is_recording = False
@@ -216,27 +219,38 @@ class DashInteraction:
 
         @self.app.callback(    
             [Output('animation-interval', 'disabled'),
-             Output('animation-interval', 'n_intervals')],
+             Output('animation-interval', 'n_intervals'),
+             Output('animation-interval', 'max_intervals')],
             [Input('play-button', 'n_clicks'),
              Input('pause-button', 'n_clicks'),
              Input('reset-button', 'n_clicks')],
             prevent_initial_call=True
         )
         def control_animation(play_clicks, pause_clicks, reset_clicks):
+            len_figures = len(self.figures)
             ctx = callback_context
             if not ctx.triggered:
-                return True, 0
-            
+                return True, 0, len_figures
+
            #button_id = ctx.triggered[0]['prop_id'].split('.')[0]
             button_id = ctx.triggered_id
             
             if button_id == 'play-button':
-                return False, no_update  # Enable interval, keep current n_intervals
+                if self.is_recording or self.last_recorded_interval is None:
+                    return False, no_update, len_figures  # Enable interval, keep current n_intervals
+                else:
+                    return False, 0, self.last_recorded_interval
             elif button_id == 'pause-button':
-                return True, no_update   # Disable interval, keep current n_intervals
+                if self.is_recording or self.last_recorded_interval is None:
+                    return True, no_update, len_figures  # Disable interval, keep current n_intervals
+                else:
+                    return True, no_update, self.last_recorded_interval
             elif button_id == 'reset-button':
-                return True, 0                # Disable interval and reset to beginning
-            
+                if self.is_recording or self.last_recorded_interval is None:
+                    return True, 0, len_figures               # Disable interval and reset to beginning
+                else:
+                    return True, 0, self.last_recorded_interval  # Disable interval and reset to beginning of recorded frames
+
             return True, 0
     
     def _add_animation_callback(self):
@@ -247,8 +261,8 @@ class DashInteraction:
         )
         def update_current_frame_display(n_intervals):
             current_frame = self._get_current_frame_number(n_intervals or 0)
-            return f"Current Frame: {current_frame}"
-        
+            return f"Current Frame: {current_frame} | {n_intervals} | {self.last_recorded_interval} | self.is_recording={self.is_recording}"
+
         @self.app.callback(
             [Output('animated-figure', 'figure')],
             [Input('animation-interval', 'n_intervals'), 
@@ -261,11 +275,24 @@ class DashInteraction:
             if len_figures == 0:
                 return [{}]
             # Show figures sequentially, stop at the last one
-            if n_intervals >= len_figures:
-                figure_index = len_figures - 1  # Stay on last figure
+            if self.is_recording:
+                #print(f"Recording mode: ", n_intervals)
+                if n_intervals >= len_figures:
+                    figure_index = len_figures - 1  # Stay on last figure
+                else:
+                    figure_index = n_intervals
             else:
-                figure_index = n_intervals
- 
+                if self.last_recorded_interval is None:
+                    if n_intervals >= len_figures:
+                        figure_index = len_figures - 1  # Stay on last figure
+                    else:
+                        figure_index = n_intervals
+                else:
+                    if n_intervals >= self.last_recorded_interval:
+                        figure_index = self.last_recorded_interval - 1  # Stay on last recorded frame
+                    else:
+                        figure_index = n_intervals
+
             figure_dict = self.figures[figure_index].to_dict() if hasattr(self.figures[figure_index], 'to_dict') else dict(self.figures[figure_index])
             updated_figure = copy.deepcopy(figure_dict)
             
