@@ -282,7 +282,7 @@ class DashInteraction:
                 # End shapes that are no longer present
                 removed_shape_hashes = stored_shapes_hashes - current_shapes_hashes
                 for shape_hash, shape_dict in list(self.annotation_store.items()):
-                    if shape_hash in removed_shape_hashes:
+                    if (shape_hash in removed_shape_hashes) and (shape_dict['frame_end'] is None):
                         shape_dict['frame_end'] = current_frame
                         self.annotation_store[shape_hash] = shape_dict
 
