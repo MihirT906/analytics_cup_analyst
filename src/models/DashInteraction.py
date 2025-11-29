@@ -77,44 +77,50 @@ class DashInteraction:
     def _create_header(self):
         """ Create header section of the Dash app """
         return html.Div(id='header', children=[
-            html.H1("Interactive Episode Studio", style={'textAlign': 'center'}),
-            html.H2(f"Match ID: {self.episode_data['match_id']}", style={'textAlign': 'center'}),
-            html.H2(f"Frame Range: {self.episode_data['frame_start']} - {self.episode_data['frame_end']}", style={'textAlign': 'center'}),
+            html.H1("Interactive Episode Studio", style={'textAlign': 'left', 'padding-left': '20px'}),
+            html.Div(id='match-info', children=[
+                html.P([html.B("Match ID: "), f"{self.episode_data['match_id']}"], style={'textAlign': 'left', 'padding-left': '20px', 'margin': '5px 0'}),
+                html.P([html.B("Frame Range: "), f"{self.episode_data['frame_start']} - {self.episode_data['frame_end']}"], style={'textAlign': 'left', 'padding-left': '20px', 'margin': '5px 0'}),
+            ], style={'backgroundColor': "#f0f0f0", 'margin-bottom': '20px', 'border': '1px solid black'})
         ])
     
     def _create_plot_controls(self):
         """ Create plot control buttons """
         record_button = html.Button('REC', id='record-button', n_clicks=0, style={
-                    'backgroundColor': "#ff0000",
-                    'color': 'white',
-                    'border': 'none',
+                    'backgroundColor': "white",
+                    'color': 'black',
+                    'border': '1px solid black',
+                    'borderBottom': '5px solid #ff0000',
                     'padding': '10px 20px',
                     'margin': '10px 5px',
                     'borderRadius': '5px',
                     'cursor': 'pointer'
                 })
         play_button = html.Button('Play', id='play-button', n_clicks=0, style={
-                    'backgroundColor': '#28a745',
-                    'color': 'white',
-                    'border': 'none',
+                    'backgroundColor': 'white',
+                    'color': 'black',
+                    'border': '1px solid black',
+                    'borderBottom': '5px solid #28a745',
                     'padding': '10px 20px',
                     'margin': '10px 5px',
                     'borderRadius': '5px',
                     'cursor': 'pointer'
                 })
         pause_button = html.Button('Pause', id='pause-button', n_clicks=0, style={
-                    'backgroundColor': "#e9cb09",
-                    'color': 'white',
-                    'border': 'none',
+                    'backgroundColor': "white",
+                    'color': 'black',
+                    'border': '1px solid black',
+                    'borderBottom': '5px solid #e9cb09',
                     'padding': '10px 20px',
                     'margin': '10px 5px',
                     'borderRadius': '5px',
                     'cursor': 'pointer'
                 })
         reset_button = html.Button('Reset', id='reset-button', n_clicks=0, style={
-                    'backgroundColor': '#6c757d',
-                    'color': 'white',
-                    'border': 'none',
+                    'backgroundColor': 'white',
+                    'color': 'black',
+                    'border': '1px solid black',
+                    'borderBottom': '5px solid #6c757d',
                     'padding': '10px 20px',
                     'margin': '10px 5px',
                     'borderRadius': '5px',
@@ -193,9 +199,15 @@ class DashInteraction:
     def _create_layout(self):
         return html.Div(id='main-layout', children=[
                 self._create_header(), 
-                self._create_plot_controls(),
-                self._create_plot_area(),
-                self._create_annotation_area()
+                html.Div(children=[
+                    html.Div(children=[
+                        self._create_plot_controls(),
+                        self._create_plot_area(),
+                    ], style={'width': '65%'}),
+                    html.Div(children=[
+                        self._create_annotation_area()
+                    ], style={'width': '35%'})
+                ], style={'display': 'flex', 'gap': '10px'})
             ])
     
     def _add_control_animation_callback(self):
