@@ -224,10 +224,10 @@ class DashInteraction:
                     html.Div(children=[
                         self._create_plot_controls(),
                         self._create_plot_area(),
-                    ], style={'width': '65%'}),
+                    ], style={'width': '70%'}),
                     html.Div(children=[
                         self._create_annotation_area()
-                    ], style={'width': '35%'})
+                    ], style={'width': '30%'})
                 ], style={'display': 'flex', 'gap': '10px'})
             ])
     
@@ -280,10 +280,11 @@ class DashInteraction:
                 else:
                     return True, no_update, self.last_recorded_interval, False
             elif button_id == 'reset-button':
-                if self.is_recording or self.last_recorded_interval is None:
-                    return True, 0, len_figures, False  # Disable interval and reset to beginning
-                else:
-                    return True, 0, self.last_recorded_interval, False  # Disable interval and reset to beginning of recorded frames
+                self.last_recorded_interval = None
+                # if self.is_recording or self.last_recorded_interval is None:
+                #     return True, 0, len_figures, False  # Disable interval and reset to beginning
+                # else:
+                #     return True, 0, self.last_recorded_interval, False  # Disable interval and reset to beginning of recorded frames
 
             return True, 0, 0, False
 
