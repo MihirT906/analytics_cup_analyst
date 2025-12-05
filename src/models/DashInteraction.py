@@ -150,6 +150,26 @@ class DashInteraction:
                 })
         return html.Div(id='plot-controls', children=[record_button, play_button, pause_button, reset_button], style={'textAlign': 'center'})
     
+    def _create_episode_slider(self):
+        """ Create episode frame slider """
+        frame_slider = html.Div([
+            dcc.Slider(
+                id='frame-slider',
+                min=self.episode_data['frame_start'],
+                max=self.episode_data['frame_end'],
+                value=self.episode_data['frame_start'],
+                marks={i: str(i) for i in range(self.episode_data['frame_start'], self.episode_data['frame_end'] + 1, 10)},
+                step=1,
+                # updatemode='drag'
+            )
+        ], style={
+        'width': '70%',
+        'margin': '10px auto',
+        'padding': '0 20px',
+        'textAlign': 'center'
+    })
+        return frame_slider
+    
     def _create_plot_area(self):
         """ Create plot area with graph and interval component """
         current_frame_display = html.Div(id='current-frame-display', style={'textAlign': 'center', 'margin': '10px', 'fontSize': '18px', 'fontWeight': 'bold'})
@@ -163,7 +183,6 @@ class DashInteraction:
                                 'modeBarButtonsToAdd': [
                                     'drawline',
                                     'drawopenpath',
-                                    'drawclosedpath',
                                     'drawcircle',
                                     'drawrect',
                                     'eraseshape'
@@ -225,6 +244,7 @@ class DashInteraction:
                     html.Div(children=[
                         self._create_plot_controls(),
                         self._create_plot_area(),
+                        self._create_episode_slider(),
                     ], style={'width': '70%'}),
                     html.Div(children=[
                         self._create_annotation_area()
@@ -236,21 +256,23 @@ class DashInteraction:
         """ Add callback to control animation playback """
         @self.app.callback(
             [Output('record-button', 'disabled'),
-             Output('reset-button', 'disabled')],
+             Output('reset-button', 'disabled'),
+             Output('frame-slider', 'value')],
             [Input('play-button', 'n_clicks'),
              Input('pause-button', 'n_clicks'),
+             Input('reset-button', 'n_clicks'),
              Input('animation-interval', 'n_intervals'),
              Input('animation-interval', 'max_intervals')],
             prevent_initial_call=True
         )
-        def toggle_pause_play(play_clicks, pause_clicks, n_intervals, max_intervals):
+        def toggle_pause_play(play_clicks, pause_clicks, reset_clicks, n_intervals, max_intervals):
 
             if n_intervals >= max_intervals:
                 self.is_playing = False # If end of playback, is_playing state should be false
                 
             ctx = callback_context
             if not ctx.triggered:
-                return True, True
+                return True, True, no_update
             
             button_id = ctx.triggered_id
             
@@ -259,12 +281,16 @@ class DashInteraction:
                 
             elif button_id == 'pause-button':
                 self.is_playing = False
+            
+            elif button_id == 'reset-button':
+                self.is_playing = False
+                return False, False, self.episode_data['frame_start']  # Reset frame slider to start frame
                 
             if self.is_playing:
-                return True, True # Disable record and reset while playing
+                return True, True, self._get_current_frame_number(n_intervals) # Disable record and reset while playing
             else:
-                return False, False # Enable record and reset when paused or stopped
-            
+                return False, False, no_update # Enable record and reset when paused or stopped
+
         @self.app.callback(
             [Output('plot-area', 'style'),
              Output('record-button', 'children')],
