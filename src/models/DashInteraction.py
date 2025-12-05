@@ -10,6 +10,7 @@ class DashInteraction:
         self.episode_file = episode_file
         self.figures = None
         self.app = None
+        self.is_playing = False
         self.is_recording = False
         self.last_recorded_interval = None
         self.annotation_store = {}
@@ -233,7 +234,37 @@ class DashInteraction:
     
     def _add_control_animation_callback(self):
         """ Add callback to control animation playback """
-        
+        @self.app.callback(
+            [Output('record-button', 'disabled'),
+             Output('reset-button', 'disabled')],
+            [Input('play-button', 'n_clicks'),
+             Input('pause-button', 'n_clicks'),
+             Input('animation-interval', 'n_intervals'),
+             Input('animation-interval', 'max_intervals')],
+            prevent_initial_call=True
+        )
+        def toggle_pause_play(play_clicks, pause_clicks, n_intervals, max_intervals):
+
+            if n_intervals >= max_intervals:
+                self.is_playing = False # If end of playback, is_playing state should be false
+                
+            ctx = callback_context
+            if not ctx.triggered:
+                return True, True
+            
+            button_id = ctx.triggered_id
+            
+            if button_id == 'play-button':
+                self.is_playing = True
+                
+            elif button_id == 'pause-button':
+                self.is_playing = False
+                
+            if self.is_playing:
+                return True, True # Disable record and reset while playing
+            else:
+                return False, False # Enable record and reset when paused or stopped
+            
         @self.app.callback(
             [Output('plot-area', 'style'),
              Output('record-button', 'children')],
@@ -253,8 +284,7 @@ class DashInteraction:
         @self.app.callback(    
             [Output('animation-interval', 'disabled'),
              Output('animation-interval', 'n_intervals'),
-             Output('animation-interval', 'max_intervals'),
-             Output('record-button', 'disabled')],
+             Output('animation-interval', 'max_intervals')],
             [Input('play-button', 'n_clicks'),
              Input('pause-button', 'n_clicks'),
              Input('reset-button', 'n_clicks')],
@@ -264,21 +294,21 @@ class DashInteraction:
             len_figures = len(self.figures)
             ctx = callback_context
             if not ctx.triggered:
-                return True, 0, len_figures, False
+                return True, 0, len_figures
 
            #button_id = ctx.triggered[0]['prop_id'].split('.')[0]
             button_id = ctx.triggered_id
             
             if button_id == 'play-button':
                 if self.is_recording or self.last_recorded_interval is None:
-                    return False, no_update, len_figures, True  # Enable interval, keep current n_intervals
+                    return False, no_update, len_figures  # Enable interval, keep current n_intervals
                 else:
-                    return False, 0, self.last_recorded_interval, True
+                    return False, 0, self.last_recorded_interval
             elif button_id == 'pause-button':
                 if self.is_recording or self.last_recorded_interval is None:
-                    return True, no_update, len_figures, False  # Disable interval, keep current n_intervals
+                    return True, no_update, len_figures  # Disable interval, keep current n_intervals
                 else:
-                    return True, no_update, self.last_recorded_interval, False
+                    return True, no_update, self.last_recorded_interval
             elif button_id == 'reset-button':
                 self.last_recorded_interval = None
                 # if self.is_recording or self.last_recorded_interval is None:
@@ -286,7 +316,7 @@ class DashInteraction:
                 # else:
                 #     return True, 0, self.last_recorded_interval, False  # Disable interval and reset to beginning of recorded frames
 
-            return True, 0, 0, False
+            return True, 0, 0
 
     def _add_animation_callback(self):
         """ Add callback to update figure based on animation interval """
@@ -296,7 +326,7 @@ class DashInteraction:
         )
         def update_current_frame_display(n_intervals):
             current_frame = self._get_current_frame_number(n_intervals or 0)
-            return f"Current Frame: {current_frame} | {n_intervals} | {self.last_recorded_interval} | self.is_recording={self.is_recording}"
+            return f"Current Frame: {current_frame} | {n_intervals} | {self.last_recorded_interval} | self.is_recording={self.is_recording} | self.is_playing={self.is_playing}"
 
         @self.app.callback(
             [Output('animated-figure', 'figure')],
