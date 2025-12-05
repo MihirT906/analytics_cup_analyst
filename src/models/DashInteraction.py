@@ -15,10 +15,31 @@ class DashInteraction:
         self.annotation_store = {}
 
     def _display_annotation_store(self):
-        annotation_text = ""
+        if not self.annotation_store:
+            return html.Div("No annotations yet", style={
+                'backgroundColor': '#ffa500', 
+                'border': '2px solid rgba(255, 165, 0, 0.8)',
+                'padding': '10px',
+                'margin': '5px',
+                'borderRadius': '5px'
+            })
+        
+        annotation_boxes = []
         for shape_hash, shape_dict in self.annotation_store.items():
-            annotation_text += f"Shape Hash: {shape_hash}, Frame Start: {shape_dict.get('frame_start')}, Frame End: {shape_dict.get('frame_end')}, Shape: {shape_dict['shape']['type']}\n"
-        return annotation_text
+            box = html.Div([
+                html.P(f"Frame Start: {shape_dict.get('frame_start')}", style={'margin': '2px 0'}),
+                html.P(f"Frame End: {shape_dict.get('frame_end')}", style={'margin': '2px 0'}),
+                html.P(f"Shape: {shape_dict['shape']['type']}", style={'margin': '2px 0'})
+            ], style={
+                'backgroundColor': '#ffa500',
+                'border': '2px solid rgba(255, 165, 0, 0.8)', 
+                'padding': '10px',
+                'margin': '5px',
+                'borderRadius': '5px'
+            })
+            annotation_boxes.append(box)
+        
+        return html.Div(annotation_boxes)
 
     def _get_shape_hash(self, shape):
         """Generate a unique hash for a shape based only on core geometric properties"""
@@ -348,7 +369,6 @@ class DashInteraction:
         )
         def capture_annotations(relayout_data, clear_clicks, n_intervals):
             if self.is_recording:
-                print("Annotation callback triggered")
                 ctx = callback_context
                 if not ctx.triggered:
                     return ["No annotations yet. Start drawing on the graph!"]
@@ -372,7 +392,7 @@ class DashInteraction:
                             shape_dict['frame_end'] = current_frame
                             self.annotation_store[shape_hash] = shape_dict
 
-                return ["Annotations Captured:\n" + self._display_annotation_store()]
+                return [self._display_annotation_store()]
             else:
                 return ["Recording is OFF. Click REC to start recording annotations."]
     
