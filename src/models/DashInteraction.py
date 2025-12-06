@@ -183,10 +183,19 @@ class DashInteraction:
                             config={
                                 'modeBarButtonsToAdd': [
                                     'drawline',
-                                    'drawopenpath',
                                     'drawcircle',
                                     'drawrect',
                                     'eraseshape'
+                                ],
+                                'modeBarButtonsToRemove': [
+                                'lasso2d',
+                                'select2d', 
+                                'zoom2d',
+                                'pan2d',
+                                'zoomIn2d',
+                                'zoomOut2d',
+                                'autoScale2d',
+                                'resetScale2d'
                                 ],
                                 'displayModeBar': True
                             }
@@ -310,7 +319,7 @@ class DashInteraction:
                 if self.last_recorded_interval is not None:
                     frame_slider_marks = {str(i): {'label': str(i), 'style': {'color': 'black'}} for i in range(self._get_current_frame_number(self.last_recorded_interval), self.episode_data['frame_end'] + 1, 1) if i%10 == 0}
                     new_frame_slider_marks = {**frame_slider_marks, str(self._get_current_frame_number(self.last_recorded_interval)): {'label': str(self._get_current_frame_number(self.last_recorded_interval)), 'style': {'color': 'red'}}}
-                    red_marks = {str(i): {'label': '*', 'style': {'backgroundColor': 'red', 'color': 'red'}} for i in range(self.episode_data['frame_start'], self._get_current_frame_number(self.last_recorded_interval), 1)}
+                    red_marks = {str(i): {'label': '*', 'style': {'backgroundColor': 'red', 'color': 'red'}} for i in range(self.episode_data['frame_start'], self._get_current_frame_number(self.last_recorded_interval)-1, 1)}
                     new_frame_slider_marks = {**red_marks, **new_frame_slider_marks}
                     return {'border': 'none'}, 'REC', new_frame_slider_marks
                 else:
@@ -457,10 +466,16 @@ class DashInteraction:
                         if (shape_hash in removed_shape_hashes) and (shape_dict['frame_end'] is None):
                             shape_dict['frame_end'] = current_frame
                             self.annotation_store[shape_hash] = shape_dict
+                        if shape_dict['frame_end'] is not None and shape_dict['frame_end'] <= shape_dict['frame_start']:
+                            del self.annotation_store[shape_hash]
 
+            #     return [self._display_annotation_store()]
+            # else:
+            #     return ["Recording is OFF. Click REC to start recording annotations."]
+            if self.annotation_store:
                 return [self._display_annotation_store()]
             else:
-                return ["Recording is OFF. Click REC to start recording annotations."]
+                return ["No annotations yet. Start recording and drawing on the graph!"]
     
     def create_app(self):
         # Create App
