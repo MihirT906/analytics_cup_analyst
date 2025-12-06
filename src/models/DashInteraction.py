@@ -152,15 +152,16 @@ class DashInteraction:
     
     def _create_episode_slider(self):
         """ Create episode frame slider """
+        red_percentage = 10
         frame_slider = html.Div([
             dcc.Slider(
                 id='frame-slider',
                 min=self.episode_data['frame_start'],
                 max=self.episode_data['frame_end'],
                 value=self.episode_data['frame_start'],
-                marks={i: str(i) for i in range(self.episode_data['frame_start'], self.episode_data['frame_end'] + 1, 10)},
+                marks={str(i): {'label': str(i), 'style': {'color': 'black'}} for i in range(self.episode_data['frame_start'], self.episode_data['frame_end'] + 1, 10)},
                 step=1,
-                # updatemode='drag'
+                disabled=True
             )
         ], style={
         'width': '70%',
@@ -293,19 +294,25 @@ class DashInteraction:
 
         @self.app.callback(
             [Output('plot-area', 'style'),
-             Output('record-button', 'children')],
+            Output('record-button', 'children'),
+            Output('frame-slider', 'marks')],
             [Input('record-button', 'n_clicks'),
-             Input('animation-interval', 'n_intervals')]
+            Input('animation-interval', 'n_intervals')],
+            prevent_initial_call=True
         )
         def toggle_recording(n_clicks, n_intervals):
+            frame_slider_marks = {str(i): {'label': str(i), 'style': {'color': 'black'}} for i in range(self.episode_data['frame_start'], self.episode_data['frame_end'] + 1, 10)}
             if n_clicks % 2 == 1:
                 self.is_recording = True
                 self.last_recorded_interval = n_intervals
-                return [{'border': '5px solid red'}, 'STOP']
+                return {'border': '5px solid red'}, 'STOP', no_update
             else:
+                if self.last_recorded_interval is not None:
+                    new_frame_slider_marks = {**frame_slider_marks, str(self._get_current_frame_number(self.last_recorded_interval)): {'label': str(self._get_current_frame_number(self.last_recorded_interval)), 'style': {'color': 'red'}}}
+                else:
+                    new_frame_slider_marks = frame_slider_marks
                 self.is_recording = False
-                return [{'border': 'none'}, 'REC']
-
+                return {'border': 'none'}, 'REC', new_frame_slider_marks
 
         @self.app.callback(    
             [Output('animation-interval', 'disabled'),
