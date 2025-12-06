@@ -81,7 +81,23 @@ class DashInteraction:
         with open(self.episode_file, 'r') as f:
             data = json.load(f)
 
-        self.episode_data = data['episode_data']
+        self.episode_data = data.get('episode_data', {})
+        self.annotation_store = data.get('annotation_data', {})
+    
+    def _save_episode_data(self):
+        """ Save episode data and annotations back to the JSON file """
+        if not self.episode_file:
+            raise ValueError("Episode file path is not provided.")
+        
+        data_to_save = {
+            'episode_data': self.episode_data,
+            'annotation_data': self.annotation_store
+        }
+        
+        with open(self.episode_file, 'w') as f:
+            json.dump(data_to_save, f, indent=4)
+        
+        print(f"Episode data and annotations saved to {self.episode_file}")
     
     def _get_episode(self):
         """ Generate figures for the episode using DashPlotlyGameRenderer """
@@ -148,8 +164,19 @@ class DashInteraction:
                     'borderRadius': '5px',
                     'cursor': 'pointer'
                 })
-        return html.Div(id='plot-controls', children=[record_button, play_button, pause_button, reset_button], style={'textAlign': 'center'})
-    
+        save_button = html.Button('Save', id='save-episode-button', n_clicks=0, style={
+                    'backgroundColor': 'white',
+                    'color': 'black',
+                    'border': '1px solid black',
+                    'borderBottom': '5px solid #007bff',
+                    'padding': '10px 20px',
+                    'margin': '10px 5px',
+                    'borderRadius': '5px',
+                    'cursor': 'pointer'
+                })
+        
+        return html.Div(id='plot-controls', children=[record_button, play_button, pause_button, reset_button, save_button], style={'textAlign': 'center'})
+
     def _create_episode_slider(self):
         """ Create episode frame slider """
         red_percentage = 10
@@ -483,7 +510,18 @@ class DashInteraction:
                 return [self._display_annotation_store()]
             else:
                 return ["No annotations yet. Start recording and drawing on the graph!"]
-    
+
+        @self.app.callback(
+            Output('save-episode-button', 'n_clicks'),
+            Input('save-episode-button', 'n_clicks')
+        )
+        def save_episode(n_clicks):
+            if n_clicks > 0:
+                # Save the episode data
+                self._save_episode_data()
+                
+            return no_update
+
     def create_app(self):
         # Create App
         self.app = dash.Dash(__name__)
