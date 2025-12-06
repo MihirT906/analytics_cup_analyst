@@ -275,7 +275,7 @@ class DashInteraction:
                     'whiteSpace': 'pre-wrap',
                     'fontSize': '12px',
                     'margin': '10px'
-                }, children="No annotations yet. Start drawing on the graph!")
+                }, children=[self._display_annotation_store()])
 
         return html.Div(id='annotation-area', children=[clear_annotations_button, annotations_display], style={'textAlign': 'center'})
 
