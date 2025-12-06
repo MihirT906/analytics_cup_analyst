@@ -209,7 +209,18 @@ class DashInteraction:
     
     def _create_plot_area(self):
         """ Create plot area with graph and interval component """
-        current_frame_display = html.Div(id='current-frame-display', style={'textAlign': 'center', 'margin': '10px', 'fontSize': '18px', 'fontWeight': 'bold'})
+        current_frame_display = html.Div(id='current-frame-display', style={
+            # 'backgroundColor': '#ffffff', 
+            'textAlign': 'center', 
+            'margin': '10px auto',
+            'fontWeight': 'bold', 
+            'color': "#D41313",
+            # 'border': '1px solid black',
+            # 'borderRadius': '5px', 
+            'width': '70%', 
+            'padding': '10px'
+        })
+        
         graph_display = html.Div(
                 children=[
                     html.Div(
@@ -254,7 +265,11 @@ class DashInteraction:
             max_intervals=len(self.figures),  # Play once through all figures
             disabled=True  # Start paused
         )
-        return html.Div(id='plot-area', children=[current_frame_display, graph_display, interval])
+        return html.Div(id='plot-area', children=[current_frame_display, graph_display, interval], style={
+            'display': 'flex',
+            'flexDirection': 'column',
+            'alignItems': 'center'  # This centers all children horizontally
+        })
 
 
     def _create_annotation_area(self):
@@ -269,7 +284,7 @@ class DashInteraction:
                     })
         
         annotations_display = html.Pre(id='annotations-display', style={
-                    'backgroundColor': '#f8f9fa',
+                    'backgroundColor': '#ffffff',
                     'padding': '15px',
                     'border': '1px solid black',
                     'borderRadius': '5px',
@@ -296,8 +311,8 @@ class DashInteraction:
                         self._create_annotation_area()
                     ], style={'backgroundColor': "#f0f0f0b4", 'border': '1px solid black', 'width': '20%'})
                 ], style={'display': 'flex', 'gap': '10px'})
-            ])
-    
+            ], style={'fontFamily': 'Courier New, monospace'})
+
     def _add_control_animation_callback(self):
         """ Add callback to control animation playback """
         @self.app.callback(
@@ -406,8 +421,12 @@ class DashInteraction:
             [Input('animation-interval', 'n_intervals')]
         )
         def update_current_frame_display(n_intervals):
-            current_frame = self._get_current_frame_number(n_intervals or 0)
-            return f"Current Frame: {current_frame} | {n_intervals} | {self.last_recorded_interval} | self.is_recording={self.is_recording} | self.is_playing={self.is_playing}"
+            if not self.is_recording:
+                return f"Click REC to start recording annotations."
+            else:
+                return f"Recording... Pause to draw annotations."
+            # current_frame = self._get_current_frame_number(n_intervals or 0)
+            # return f"Current Frame: {current_frame} | {n_intervals} | {self.last_recorded_interval} | self.is_recording={self.is_recording} | self.is_playing={self.is_playing}"
 
         @self.app.callback(
             [Output('animated-figure', 'figure')],
