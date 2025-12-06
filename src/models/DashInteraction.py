@@ -28,16 +28,16 @@ class DashInteraction:
         annotation_boxes = []
         for shape_hash, shape_dict in self.annotation_store.items():
             box = html.Div([
-                html.P(f"Frame Start: {shape_dict.get('frame_start')}", style={'margin': '2px 0'}),
-                html.P(f"Frame End: {shape_dict.get('frame_end')}", style={'margin': '2px 0'}),
-                html.P(f"Shape: {shape_dict['shape']['type']}", style={'margin': '2px 0'})
-            ], style={
-                'backgroundColor': '#ffa500',
-                'border': '2px solid rgba(255, 165, 0, 0.8)', 
-                'padding': '10px',
-                'margin': '5px',
-                'borderRadius': '5px'
-            })
+                    html.P([html.B("Frame Start: "), f"{shape_dict.get('frame_start')}"], style={'margin': '2px 0'}),
+                    html.P([html.B("Frame End: "), f"{shape_dict.get('frame_end')}"], style={'margin': '2px 0'}),
+                    html.P([html.B("Shape: "), f"{shape_dict['shape']['type']}"], style={'margin': '2px 0'})
+                ], style={
+                    'backgroundColor': "#ffc107",
+                    'border': '2px solid black', 
+                    'padding': '10px',
+                    'margin': '5px',
+                    'borderRadius': '5px'
+                })
             annotation_boxes.append(box)
         
         return html.Div(annotation_boxes)
@@ -115,11 +115,14 @@ class DashInteraction:
     def _create_header(self):
         """ Create header section of the Dash app """
         return html.Div(id='header', children=[
-            html.H1("Episode Craft Studio", style={'textAlign': 'left', 'padding-left': '20px'}),
+            html.H1("Episode Craft Studio", style={'textAlign': 'center', 'padding-left': '20px'}),
             html.Div(id='match-info', children=[
-                html.P([html.B("Match ID: "), f"{self.episode_data['match_id']}"], style={'textAlign': 'left', 'padding-left': '20px', 'margin': '5px 0'}),
-                html.P([html.B("Frame Range: "), f"{self.episode_data['frame_start']} - {self.episode_data['frame_end']}"], style={'textAlign': 'left', 'padding-left': '20px', 'margin': '5px 0'}),
-            ], style={'backgroundColor': "#f0f0f0", 'margin-bottom': '20px', 'border': '1px solid black'})
+                html.P([
+                    html.B("Match ID: "), f"{self.episode_data['match_id']}", 
+                    html.Span(" | ", style={'margin': '0 10px'}),
+                    html.B("Frame Range: "), f"{self.episode_data['frame_start']} - {self.episode_data['frame_end']}"
+                ], style={'textAlign': 'left', 'padding-left': '20px', 'margin': '5px 0'}),
+            ], style={'backgroundColor': "#f0f0f0b4", 'margin-bottom': '15px', 'border': '1px solid black'})
         ])
     
     def _create_plot_controls(self):
@@ -268,7 +271,7 @@ class DashInteraction:
         annotations_display = html.Pre(id='annotations-display', style={
                     'backgroundColor': '#f8f9fa',
                     'padding': '15px',
-                    'border': '1px solid #dee2e6',
+                    'border': '1px solid black',
                     'borderRadius': '5px',
                     'maxHeight': '300px',
                     'overflow': 'auto',
@@ -285,13 +288,13 @@ class DashInteraction:
                 self._create_header(), 
                 html.Div(children=[
                     html.Div(children=[
-                        self._create_plot_controls(),
                         self._create_plot_area(),
                         self._create_episode_slider(),
-                    ], style={'width': '70%'}),
+                        self._create_plot_controls(),
+                    ], style={'backgroundColor': "#f0f0f0b4", 'border': '1px solid black', 'width': '80%'}),
                     html.Div(children=[
                         self._create_annotation_area()
-                    ], style={'width': '30%'})
+                    ], style={'backgroundColor': "#f0f0f0b4", 'border': '1px solid black', 'width': '20%'})
                 ], style={'display': 'flex', 'gap': '10px'})
             ])
     
