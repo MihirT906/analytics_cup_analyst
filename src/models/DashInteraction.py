@@ -99,7 +99,7 @@ class DashInteraction:
     def _create_header(self):
         """ Create header section of the Dash app """
         return html.Div(id='header', children=[
-            html.H1("Interactive Episode Studio", style={'textAlign': 'left', 'padding-left': '20px'}),
+            html.H1("Episode Craft Studio", style={'textAlign': 'left', 'padding-left': '20px'}),
             html.Div(id='match-info', children=[
                 html.P([html.B("Match ID: "), f"{self.episode_data['match_id']}"], style={'textAlign': 'left', 'padding-left': '20px', 'margin': '5px 0'}),
                 html.P([html.B("Frame Range: "), f"{self.episode_data['frame_start']} - {self.episode_data['frame_end']}"], style={'textAlign': 'left', 'padding-left': '20px', 'margin': '5px 0'}),
@@ -161,7 +161,13 @@ class DashInteraction:
                 value=self.episode_data['frame_start'],
                 marks={str(i): {'label': str(i), 'style': {'color': 'black'}} for i in range(self.episode_data['frame_start'], self.episode_data['frame_end'] + 1, 10)},
                 step=1,
-                disabled=True
+                disabled=True,
+                tooltip={
+                    "placement": "bottom",
+                    "always_visible": True,
+                    "style": {"color": "white", "fontSize": "14px"},
+                    "template": "Frame: {value}"
+                }
             )
         ], style={
         'width': '70%',
@@ -331,10 +337,11 @@ class DashInteraction:
              Output('animation-interval', 'max_intervals')],
             [Input('play-button', 'n_clicks'),
              Input('pause-button', 'n_clicks'),
-             Input('reset-button', 'n_clicks')],
+             Input('reset-button', 'n_clicks'),
+             Input('record-button', 'n_clicks')],
             prevent_initial_call=True
         )
-        def control_animation(play_clicks, pause_clicks, reset_clicks):
+        def control_animation(play_clicks, pause_clicks, reset_clicks, record_clicks):
             len_figures = len(self.figures)
             ctx = callback_context
             if not ctx.triggered:
@@ -355,11 +362,11 @@ class DashInteraction:
                     return True, no_update, self.last_recorded_interval
             elif button_id == 'reset-button':
                 self.last_recorded_interval = None
-                # if self.is_recording or self.last_recorded_interval is None:
-                #     return True, 0, len_figures, False  # Disable interval and reset to beginning
-                # else:
-                #     return True, 0, self.last_recorded_interval, False  # Disable interval and reset to beginning of recorded frames
-
+            
+            elif button_id == 'record-button':
+                if self.last_recorded_interval is None:
+                    return no_update, 0, no_update
+            
             return True, 0, 0
 
     def _add_animation_callback(self):
@@ -480,7 +487,7 @@ class DashInteraction:
     def create_app(self):
         # Create App
         self.app = dash.Dash(__name__)
-        self.app.title = "Interactive Episode Studio"
+        self.app.title = "Episode Craft Studio"
         self._get_episode()
         self.app.layout = self._create_layout()
         # Add callbacks
