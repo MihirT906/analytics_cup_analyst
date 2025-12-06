@@ -301,18 +301,20 @@ class DashInteraction:
             prevent_initial_call=True
         )
         def toggle_recording(n_clicks, n_intervals):
-            frame_slider_marks = {str(i): {'label': str(i), 'style': {'color': 'black'}} for i in range(self.episode_data['frame_start'], self.episode_data['frame_end'] + 1, 10)}
             if n_clicks % 2 == 1:
                 self.is_recording = True
                 self.last_recorded_interval = n_intervals
                 return {'border': '5px solid red'}, 'STOP', no_update
             else:
-                if self.last_recorded_interval is not None:
-                    new_frame_slider_marks = {**frame_slider_marks, str(self._get_current_frame_number(self.last_recorded_interval)): {'label': str(self._get_current_frame_number(self.last_recorded_interval)), 'style': {'color': 'red'}}}
-                else:
-                    new_frame_slider_marks = frame_slider_marks
                 self.is_recording = False
-                return {'border': 'none'}, 'REC', new_frame_slider_marks
+                if self.last_recorded_interval is not None:
+                    frame_slider_marks = {str(i): {'label': str(i), 'style': {'color': 'black'}} for i in range(self._get_current_frame_number(self.last_recorded_interval), self.episode_data['frame_end'] + 1, 1) if i%10 == 0}
+                    new_frame_slider_marks = {**frame_slider_marks, str(self._get_current_frame_number(self.last_recorded_interval)): {'label': str(self._get_current_frame_number(self.last_recorded_interval)), 'style': {'color': 'red'}}}
+                    red_marks = {str(i): {'label': '*', 'style': {'backgroundColor': 'red', 'color': 'red'}} for i in range(self.episode_data['frame_start'], self._get_current_frame_number(self.last_recorded_interval), 1)}
+                    new_frame_slider_marks = {**red_marks, **new_frame_slider_marks}
+                    return {'border': 'none'}, 'REC', new_frame_slider_marks
+                else:
+                    return {'border': 'none'}, 'REC', no_update
 
         @self.app.callback(    
             [Output('animation-interval', 'disabled'),
