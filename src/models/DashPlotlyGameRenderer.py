@@ -2,6 +2,7 @@ from .Pitch import PlotlyPitch
 from .DataLoader import DataLoader
 from IPython.display import clear_output, display
 import time
+import copy
 import matplotlib.pyplot as plt
 import pandas as pd
 import numpy as np
@@ -12,7 +13,7 @@ import plotly.graph_objects as go
 
 class DashPlotlyGameRenderer:
     def __init__(self, config_file=None):
-        self.data_loader = DataLoader()
+        self.data_loader = DataLoader() # Used to load tracking and event data
 
         # Load default configuration from JSON file
         default_config_path = os.path.join(os.path.dirname(__file__), '..', 'config', 'default_game_renderer_config.json')
@@ -29,7 +30,6 @@ class DashPlotlyGameRenderer:
         else:
             self.config = default_config
             
-        # Cache for performance optimization
         self._data_cache = {}  # Stores enriched_data, events_data, and frame_events per match_id
 
     def _merge_configs(self, default_config, user_config):
@@ -109,8 +109,6 @@ class DashPlotlyGameRenderer:
         '''
             This function creates a background soccer pitch using mplsoccer.
         '''
-        # Get pitch configuration
-        # pitch_config = self.config['pitch']
         pitch = PlotlyPitch(self.config)
         fig = pitch.draw_image()
         
@@ -584,15 +582,9 @@ class DashPlotlyGameRenderer:
         if hasattr(self, '_legend_created'):
             delattr(self, '_legend_created')
         
-        # Alternative: If display handle doesn't work, use optimized clear_output
-        # Optimized animation loop - pitch is already drawn by create_pitch()
         figs = []
         for frame_num in frames_to_plot:
-                
             fig = self.plot_frame(fig, enriched_data, frame_events, frame_num)
-            
-            # Use clear_output with wait=True to minimize blank time
-            import copy
             figs.append(copy.deepcopy(fig))
                     
         return figs
