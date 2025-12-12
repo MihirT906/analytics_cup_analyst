@@ -104,7 +104,7 @@ class DashInteraction:
         try:
             self._get_episode_data()
             game_renderer = DashPlotlyGameRenderer(config_file='src/config/simple_game_renderer_config.json')
-            figures = game_renderer.plot_episode(self.episode_data['match_id'], self.episode_data['frame_start'], self.episode_data['frame_end'], delay=0)
+            figures = game_renderer.plot_episode(self.episode_data['match_id'], self.episode_data['frame_start'], self.episode_data['frame_end'], delay=0, show_voronoi=True)
             print(f"Generated {len(figures)} figures for frames {self.episode_data['frame_start']} to {self.episode_data['frame_end']}")
             self.figures = figures
             

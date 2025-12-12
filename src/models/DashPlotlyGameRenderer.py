@@ -111,8 +111,9 @@ class DashPlotlyGameRenderer:
         '''
         pitch = PlotlyPitch(self.config)
         fig = pitch.draw_image()
+        p = pitch.p
         
-        return fig
+        return fig, p
 
     def _get_team_color_mapping(self, enriched_data):
         """
@@ -183,7 +184,7 @@ class DashPlotlyGameRenderer:
         # Clear all traces (scatter plots, lines, etc.) but preserve layout images (pitch)
         fig.data = []
 
-    def plot_frame(self, fig, enriched_data, frame_events, frame_num):
+    def plot_frame(self, fig, p, enriched_data, frame_events, frame_num, show_voronoi=False):
         '''
         Main function to plot a single frame of the game.
         Assumes pitch is already drawn on the axes.
@@ -208,10 +209,13 @@ class DashPlotlyGameRenderer:
         # Step 6: Plot ball
         self._plot_ball(fig, frame_data)
         
-        # Step 7: Add title and legend
+        # Step 7: Add title
         self._add_frame_title(fig, frame_data, frame_num)
-        #self._add_legend(fig, frame_data, enriched_data)
         
+        # Step 8: Add overlay
+        if show_voronoi:
+            self.draw_voronoi(fig, p, frame_data, frame_num)
+
         return fig
 
     def _plot_players(self, fig, frame_data, masks, enriched_data):
@@ -554,10 +558,63 @@ class DashPlotlyGameRenderer:
         Add legend to the plot (only if not already cached).
         '''
         pass
+
+    def draw_voronoi(self, fig, p, frame_data, frame_num):
+        team1, team2 = p.voronoi(frame_data.x, frame_data.y,
+                        frame_data['direction_player_1st_half'] == 'left_to_right')
         
- 
-    
-    def plot_episode(self, match_id, start_frame, end_frame, delay=0.0):
+        # Get team color mapping
+        team_color_map = self._get_team_color_mapping(frame_data)
+        
+        # Get the actual team names from frame_data
+        teams = frame_data['team_name'].unique()
+        team1_mask = frame_data['direction_player_1st_half'] == 'left_to_right'
+        team2_mask = frame_data['direction_player_1st_half'] == 'right_to_left'
+        
+        # Get team names for each group
+        team1_name = frame_data[team1_mask]['team_name'].iloc[0] if team1_mask.any() else None
+        team2_name = frame_data[team2_mask]['team_name'].iloc[0] if team2_mask.any() else None
+        
+        # Convert team colors to rgba with transparency
+        import matplotlib.colors as mcolors
+        
+        # Plot team1 polygons with correct team color
+        if team1_name:
+            team1_color = team_color_map[team1_name]
+            rgba_color1 = mcolors.to_rgba(team1_color, alpha=0.4)
+            rgba_str1 = f"rgba({int(rgba_color1[0]*255)}, {int(rgba_color1[1]*255)}, {int(rgba_color1[2]*255)}, {rgba_color1[3]})"
+            
+            for poly in team1:
+                fig.add_trace(go.Scatter(
+                    x=poly[:,0], 
+                    y=poly[:,1], 
+                    mode="lines",
+                    fill="toself",
+                    fillcolor=rgba_str1,
+                    line=dict(color='rgba(255, 255, 255, 0.4)', width=1, dash='dash'),
+                    showlegend=False,
+                    hoverinfo='skip'
+                ))
+        
+        # Plot team2 polygons with correct team color
+        if team2_name:
+            team2_color = team_color_map[team2_name]
+            rgba_color2 = mcolors.to_rgba(team2_color, alpha=0.4)
+            rgba_str2 = f"rgba({int(rgba_color2[0]*255)}, {int(rgba_color2[1]*255)}, {int(rgba_color2[2]*255)}, {rgba_color2[3]})"
+            
+            for poly in team2:
+                fig.add_trace(go.Scatter(
+                    x=poly[:,0], 
+                    y=poly[:,1], 
+                    mode="lines",
+                    fill="toself",
+                    fillcolor=rgba_str2,
+                    line=dict(color='rgba(255, 255, 255, 0.4)', width=1, dash='dash'),
+                    showlegend=False,
+                    hoverinfo='skip'
+                ))
+
+    def plot_episode(self, match_id, start_frame, end_frame, delay=0.0, show_voronoi=False):
         '''
         Highly optimized function to plot an episode (sequence of frames) from start_frame to end_frame.
         Uses caching, pre-computed event associations, vectorized plotting, and static pitch reuse.
@@ -576,7 +633,7 @@ class DashPlotlyGameRenderer:
             return
         
         # Create figure and axes with pitch drawn once
-        fig = self.create_pitch()
+        fig, p = self.create_pitch()
         
         # Reset legend cache for new episode
         if hasattr(self, '_legend_created'):
@@ -584,7 +641,7 @@ class DashPlotlyGameRenderer:
         
         figs = []
         for frame_num in frames_to_plot:
-            fig = self.plot_frame(fig, enriched_data, frame_events, frame_num)
+            fig = self.plot_frame(fig, p, enriched_data, frame_events, frame_num, show_voronoi)
             figs.append(copy.deepcopy(fig))
                     
         return figs

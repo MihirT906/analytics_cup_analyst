@@ -10,7 +10,6 @@ import matplotlib.pyplot as plt
 class PlotlyPitch:
     def __init__(self, config=None):
         self.config = config
-        
     def draw_image(self):
         # Create matplotlib figure first
         pitch = Pitch(
@@ -85,5 +84,5 @@ class PlotlyPitch:
             margin=dict(l=20, r=20, t=50, b=20),
             showlegend=False
         )
-        
+        self.p = pitch
         return fig_plotly
