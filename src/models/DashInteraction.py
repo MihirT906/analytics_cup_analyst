@@ -410,6 +410,8 @@ class DashInteraction:
             elif button_id == 'record-button':
                 if self.last_recorded_interval is None:
                     return no_update, 0, no_update
+                else:
+                    return no_update, no_update, no_update
             
             return True, 0, 0
 
@@ -518,11 +520,12 @@ class DashInteraction:
                     # End shapes that are no longer present
                     removed_shape_hashes = stored_shapes_hashes - current_shapes_hashes
                     for shape_hash, shape_dict in list(self.annotation_store.items()):
-                        if (shape_hash in removed_shape_hashes) and (shape_dict['frame_end'] is None):
+                        # print(shape_dict)
+                        if (shape_hash in removed_shape_hashes) and (shape_dict['frame_start'] <= current_frame):
                             shape_dict['frame_end'] = current_frame
                             self.annotation_store[shape_hash] = shape_dict
-                        if shape_dict['frame_end'] is not None and shape_dict['frame_end'] <= shape_dict['frame_start']:
-                            del self.annotation_store[shape_hash]
+                        # if shape_dict['frame_end'] is not None and shape_dict['frame_end'] <= shape_dict['frame_start']:
+                        #     del self.annotation_store[shape_hash]
 
             #     return [self._display_annotation_store()]
             # else:
