@@ -252,35 +252,51 @@ class DashPlotlyGameRenderer:
             
             if not regular_field_players.empty:
                 # Create player IDs for identification
-                player_ids = [f"{row['team_name']}_{row['player_id']}" for _, row in regular_field_players.iterrows()]
-                
-                fig.add_trace(go.Scatter(
-                    x=regular_field_players['x'],
-                    y=regular_field_players['y'],
-                    mode='markers',
-                    marker=dict(
-                        color=[team_color] * len(regular_field_players),
-                        size=self.config['players']['styling']['size'],
-                        opacity=self.config['players']['styling']['alpha'],
-                        line=dict(
-                            color=self.config['players']['styling']['edgecolors'],
-                            width=self.config['players']['styling']['edge_width']
+                player_data = []
+                for _, row in regular_field_players.iterrows():
+                    player_data.append({
+                        'team_name': row['team_name'],
+                        'player_id': row['player_id'],
+                        'player_name': row.get('short_name', 'N/A'),
+                        'player_position': row.get('player_role.acronym', 'N/A'),
+                        'full_id': f"{row['team_name']}_{row['player_id']}"
+                        })
+                    
+                    fig.add_trace(go.Scatter(
+                        x=regular_field_players['x'],
+                        y=regular_field_players['y'],
+                        mode='markers',
+                        marker=dict(
+                            color=[team_color] * len(regular_field_players),
+                            size=self.config['players']['styling']['size'],
+                            opacity=self.config['players']['styling']['alpha'],
+                            line=dict(
+                                color=self.config['players']['styling']['edgecolors'],
+                                width=self.config['players']['styling']['edge_width']
+                            ),
+                            symbol='circle'
                         ),
-                        symbol='circle'
-                    ),
-                    customdata=player_ids,
-                    hovertemplate='<b>Player:</b> %{customdata}<br><b>Position:</b> (%{x:.1f}, %{y:.1f})<extra></extra>',
-                    showlegend=False,
-                    name='field_players'
-                ))
-            
+                        customdata=[[p['team_name'], p['player_name'], p['player_id'], p['player_position'], p['full_id']] for p in player_data],
+                        hovertemplate='<b>Team:</b> %{customdata[0]}<br><b>Player:</b> %{customdata[1]} (ID: %{customdata[2]})<br><b>Position:</b> %{customdata[3]}<br><b>Coords:</b> (%{x:.1f}, %{y:.1f})<extra></extra>',
+                        showlegend=False,
+                        name='field_players'
+                    ))
+                        
             # Regular goalkeepers (no special events)
             regular_gk_mask = gk_mask & ~possession_mask[team_mask] & ~passing_mask[team_mask] & ~engagement_mask[team_mask]
             regular_gk_players = team_data[regular_gk_mask]
             
             if not regular_gk_players.empty:
                 # Create player IDs for identification
-                gk_player_ids = [f"{row['team_name']}_{row['player_id']}" for _, row in regular_gk_players.iterrows()]
+                gk_player_data = []
+                for _, row in regular_gk_players.iterrows():
+                    gk_player_data.append({
+                        'team_name': row['team_name'],
+                        'player_id': row['player_id'],
+                        'player_name': row.get('short_name', 'N/A'),
+                        'player_position': row.get('player_role.acronym', 'GK'),
+                        'full_id': f"{row['team_name']}_{row['player_id']}"
+                    })
                 
                 fig.add_trace(go.Scatter(
                     x=regular_gk_players['x'],
@@ -296,8 +312,8 @@ class DashPlotlyGameRenderer:
                         ),
                         symbol='square'
                     ),
-                    customdata=gk_player_ids,
-                    hovertemplate='<b>GK:</b> %{customdata}<br><b>Position:</b> (%{x:.1f}, %{y:.1f})<extra></extra>',
+                    customdata=[[p['team_name'], p['player_name'], p['player_id'], p['player_position'], p['full_id']] for p in gk_player_data],
+                    hovertemplate='<b>Team:</b> %{customdata[0]}<br><b>Goalkeeper:</b> %{customdata[1]} (ID: %{customdata[2]})<br><b>Position:</b> %{customdata[3]}<br><b>Coords:</b> (%{x:.1f}, %{y:.1f})<extra></extra>',
                     showlegend=False,
                     name='goalkeepers'
                 ))
