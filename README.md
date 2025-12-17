@@ -46,10 +46,13 @@ _⚠️ Not adhering to these submission rules and the [**Analytics Cup Rules**]
 ## Analyst Track Abstract Template (max. 300 words)
 #### Introduction
 
+While match footage captures what happens on the field, it does not preserve the insights, reasoning, and experience of the coach. This project addresses that gap by allowing coaches to create focused episodes from a match and layer their analysis, annotations, and tactical reasoning onto them. It allows you to transform raw footage into an interpretable, accessible record that conveys insight to players.
+
 #### Usecase(s)
+Team Strategy Analysis and Post-Match Review: Coaches no longer need to sift through full match videos or spend time on complex editing to convey their insights. They can create replayable, highlighted episodes that clearly showcase key plays, player positioning, mistakes, and recurring patterns, making post-game discussions more effective and understandable for players.
 
 #### Potential Audience
-
+Coaches, sports analysts, and sports analytics content creators
 ---
 
 ## Video URL
@@ -57,7 +60,21 @@ _⚠️ Not adhering to these submission rules and the [**Analytics Cup Rules**]
 ---
 
 ## Run Instructions
+1. **Clone the repository**:
+```bash
+git clone https://github.com/MihirT906/analytics_cup_analyst.git
+```
 
+2. **Install dependencies**:
+```bash
+pip install -r requirements.txt
+```
+
+3. **Run the application**:
+Follow along the file:
+```bash
+analytics_cup_analyst/submission.ipynb
+```
 ---
 
 ## [Optional] URL to Web App / Website
