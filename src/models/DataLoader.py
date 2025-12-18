@@ -9,15 +9,14 @@ class DataLoader:
         pass
 
     def _time_to_seconds(self, time_str) -> int:
+        """Convert time string in HH:MM:SS format to total seconds."""
         if time_str is None:
             return 90 * 60  # 120 minutes = 7200 seconds
         h, m, s = map(int, time_str.split(':'))
         return h * 3600 + m * 60 + s
 
     def load_tracking_data(self, match_id) -> pd.DataFrame:
-        '''
-            Load tracking data for a specific match.
-        '''
+        """Load tracking data for a specific match."""
         
         # Ingest tracking data from Github
         tracking_data_github_url = f'https://media.githubusercontent.com/media/SkillCorner/opendata/741bdb798b0c1835057e3fa77244c1571a00e4aa/data/matches/{match_id}/{match_id}_tracking_extrapolated.jsonl'
@@ -49,10 +48,8 @@ class DataLoader:
         return tracking_df
 
     def load_meta_data(self, match_id) -> pd.DataFrame:
-        '''
-            Load metadata for a specific match.
-        '''
-        
+        """Load metadata for a specific match."""
+
         # Ingest metadata from Github
         meta_data_github_url=f'https://raw.githubusercontent.com/SkillCorner/opendata/741bdb798b0c1835057e3fa77244c1571a00e4aa/data/matches/{match_id}/{match_id}_match.json'
         response = requests.get(meta_data_github_url)
@@ -93,7 +90,6 @@ class DataLoader:
             players_df["home_team.name"] + " vs " + players_df["away_team.name"]
         )
 
-
         # Add a flag if the given player is home or away
         players_df["home_away_player"] = np.where(
             players_df.team_id == players_df["home_team.id"], "Home", "Away"
@@ -126,9 +122,7 @@ class DataLoader:
             players_df.home_team_side_1st_half,
         )
 
-
-        # Clean up and keep the columns that we want to keep about
-
+        # Clean up and keep the columns that we require
         columns_to_keep = [
             "start_time",
             "end_time",
@@ -153,9 +147,7 @@ class DataLoader:
         return players_df
     
     def load_event_data(self, match_id) -> pd.DataFrame:
-        '''
-            Load event data for a specific match.
-        '''
+        """Load event data for a specific match."""
 
         event_data_github_url = f'https://raw.githubusercontent.com/SkillCorner/opendata/refs/heads/master/data/matches/{match_id}/{match_id}_dynamic_events.csv'
         raw_data=pd.read_csv(event_data_github_url)
@@ -165,9 +157,8 @@ class DataLoader:
         
 
     def create_enriched_tracking_data(self, match_id) -> pd.DataFrame:
-        '''
-            Merge tracking data with metadata to create enriched tracking data.
-        '''
+        """Merge tracking data with metadata to create enriched tracking data."""
+        
         tracking_df = self.load_tracking_data(match_id)
         meta_df = self.load_meta_data(match_id)
         enriched_tracking_data = tracking_df.merge(
