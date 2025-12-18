@@ -1,15 +1,12 @@
-from .Pitch import PlotlyPitch
-from .DataLoader import DataLoader
-from IPython.display import clear_output, display
-import time
 import copy
-import matplotlib.pyplot as plt
-import pandas as pd
-import numpy as np
 import json
 import os
 from collections import defaultdict
+import pandas as pd
 import plotly.graph_objects as go
+
+from .Pitch import PlotlyPitch
+from .DataLoader import DataLoader
 
 class DashPlotlyGameRenderer:
     def __init__(self, config_file=None):
@@ -17,19 +14,29 @@ class DashPlotlyGameRenderer:
 
         # Load default configuration from JSON file
         default_config_path = os.path.join(os.path.dirname(__file__), '..', 'config', 'default_game_renderer_config.json')
-        with open(default_config_path, 'r') as f:
-            default_config = json.load(f)
-        
-        # Convert JSON arrays back to tuples where needed
-        default_config['display']['figsize'] = tuple(default_config['display']['figsize'])
-        default_config['legend']['bbox_anchor'] = tuple(default_config['legend']['bbox_anchor'])
-        if config_file:
-            with open(config_file, 'r') as f:
-                user_config = json.load(f)
-            self.config = self._merge_configs(default_config, user_config)
-        else:
-            self.config = default_config
-            
+        try:
+            with open(default_config_path, 'r') as f:
+                default_config = json.load(f)
+
+        except Exception as e:
+            print(f"Error loading configuration file. {default_config_path} is corrupted. Please restore it. {e}")
+            return
+
+        # Load user configuration to override defaults
+        try:
+            default_config['display']['figsize'] = tuple(default_config['display']['figsize'])
+            default_config['legend']['bbox_anchor'] = tuple(default_config['legend']['bbox_anchor'])
+            if config_file:
+                with open(config_file, 'r') as f:
+                    user_config = json.load(f)
+                self.config = self._merge_configs(default_config, user_config)
+            else:
+                self.config = default_config
+                
+        except Exception as e:
+            print(f"Error processing configuration data: {e}")
+            return
+
         self._data_cache = {}  # Stores enriched_data, events_data, and frame_events per match_id
 
     def _merge_configs(self, default_config, user_config):
@@ -51,9 +58,8 @@ class DashPlotlyGameRenderer:
         return merged
 
     def _get_cached_data(self, match_id):
-        '''
-        Get cached data or load and cache it for future use.
-        '''
+        """ Get cached data or load and cache it for future use."""
+        
         if match_id not in self._data_cache:
             try:
                 enriched_data = self.data_loader.create_enriched_tracking_data(match_id)
@@ -76,6 +82,7 @@ class DashPlotlyGameRenderer:
         Pre-compute event associations for all frames by creating a dictionary mapping frame numbers to complete event information like:
         {1: {'player_possession': [...], 'passing_options': [...], ...}}
         '''
+        
         frame_events = defaultdict(lambda: {
             'player_possession': [],
             'passing_options': [],
@@ -109,6 +116,7 @@ class DashPlotlyGameRenderer:
         '''
             This function creates a background soccer pitch using mplsoccer.
         '''
+        
         pitch = PlotlyPitch(self.config)
         fig = pitch.draw_image()
         p = pitch.p
@@ -116,10 +124,11 @@ class DashPlotlyGameRenderer:
         return fig, p
 
     def _get_team_color_mapping(self, enriched_data):
-        """
+        '''
         Create a consistent team name to color mapping based on first occurrence.
         This ensures teams keep the same colors even when they switch sides.
-        """
+        '''
+        
         if not hasattr(self, '_team_color_map'):
             all_teams = sorted(enriched_data['team_name'].unique())  # Sort for consistency
             colors = self.config['teams']['colors']
@@ -131,6 +140,7 @@ class DashPlotlyGameRenderer:
         Extract and prepare data for a specific frame.
         Returns frame_data and events, or None if no data found.
         '''
+        
         # Extract tracking in frame - single filter operation
         frame_data = enriched_data[enriched_data['frame'] == frame_num]
         
@@ -153,6 +163,7 @@ class DashPlotlyGameRenderer:
         Compute boolean masks for different player event types.
         Returns dictionary of masks and player IDs.
         '''
+        
         # Extract player IDs from event lists for efficient mask creation
         possession_player_id = events['player_possession'][0]['player_id'] if events['player_possession'] else None
         passing_player_ids = set(event['player_id'] for event in events['passing_options'])
@@ -178,17 +189,16 @@ class DashPlotlyGameRenderer:
 
     def _clear_dynamic_elements(self, fig):
         '''
-        Clear only dynamic elements (players and trajectories), preserve pitch elements.
-        The pitch image is stored in layout.images, so clearing fig.data is safe.
+        Clear figure data
         '''
-        # Clear all traces (scatter plots, lines, etc.) but preserve layout images (pitch)
+
         fig.data = []
 
     def plot_frame(self, fig, p, enriched_data, frame_events, frame_num, show_voronoi=False):
         '''
         Main function to plot a single frame of the game.
-        Assumes pitch is already drawn on the axes.
         '''
+        
         # Step 1: Prepare frame data
         frame_data, events = self._prepare_frame_data(enriched_data, frame_events, frame_num)
         if frame_data is None:
@@ -219,9 +229,8 @@ class DashPlotlyGameRenderer:
         return fig
 
     def _plot_players(self, fig, frame_data, masks, enriched_data):
-        '''
-        Plot all players using vectorized operations for better performance.
-        '''
+        """Plot all players using scatter."""
+
         # Plot configuration
         size = self.config['players']['styling']['size']
         team_color_map = self._get_team_color_mapping(enriched_data)
@@ -458,9 +467,8 @@ class DashPlotlyGameRenderer:
                     ))
 
     def _plot_off_ball_runs(self, fig, frame_data, events, masks):
-        '''
-        Plot off-ball run trajectories.
-        '''
+        """Plot off-ball run trajectories."""
+
         run_mask = masks['off_ball_runs']
 
         # Plot off ball runs for all teams
@@ -525,9 +533,8 @@ class DashPlotlyGameRenderer:
                     ))
                     
     def _plot_ball(self, fig, frame_data):
-        '''
-        Plot the ball if available.
-        '''
+        """Plot the ball if available."""
+        
         # Plot ball if available
         if 'ball_x' in frame_data.columns and not frame_data['ball_x'].isna().all():
             ball_data = frame_data[['ball_x', 'ball_y']].dropna()
@@ -549,9 +556,8 @@ class DashPlotlyGameRenderer:
                 ))
 
     def _add_frame_title(self, fig, frame_data, frame_num):
-        '''
-        Add frame information as title.
-        '''
+        """Add frame information as title."""
+        
         # Add frame num | Time elapsed | Period
         timestamp = frame_data['timestamp'].iloc[0] if 'timestamp' in frame_data.columns else 'N/A'
         period = frame_data['period'].iloc[0] if 'period' in frame_data.columns else 'N/A'
@@ -569,13 +575,9 @@ class DashPlotlyGameRenderer:
         title_text = f'Frame: {frame_num} | Timestamp : {time_display} | Period: {int(period)}'
         fig.update_layout(title=title_text)
 
-    def _add_legend(self, fig, frame_data, enriched_data):
-        '''
-        Add legend to the plot (only if not already cached).
-        '''
-        pass
-
     def draw_voronoi(self, fig, p, frame_data, frame_num):
+        """ Draw Voronoi diagram overlay for player positions. """
+        
         team1, team2 = p.voronoi(frame_data.x, frame_data.y,
                         frame_data['direction_player_1st_half'] == 'left_to_right')
         
@@ -631,10 +633,8 @@ class DashPlotlyGameRenderer:
                 ))
 
     def plot_episode(self, match_id, start_frame, end_frame, delay=0.0, show_voronoi=False):
-        '''
-        Highly optimized function to plot an episode (sequence of frames) from start_frame to end_frame.
-        Uses caching, pre-computed event associations, vectorized plotting, and static pitch reuse.
-        '''
+        """ Plot an episode (sequence of frames) from start_frame to end_frame."""
+        
         # Get cached data or load and cache it
         cached_data = self._get_cached_data(match_id)
         enriched_data = cached_data['enriched_data']
@@ -651,10 +651,6 @@ class DashPlotlyGameRenderer:
         # Create figure and axes with pitch drawn once
         fig, p = self.create_pitch()
         
-        # Reset legend cache for new episode
-        if hasattr(self, '_legend_created'):
-            delattr(self, '_legend_created')
-        
         figs = []
         for frame_num in frames_to_plot:
             fig = self.plot_frame(fig, p, enriched_data, frame_events, frame_num, show_voronoi)
@@ -663,9 +659,8 @@ class DashPlotlyGameRenderer:
         return figs
     
     def plot_saved_episode(self, episode_path, delay=0.0):
-        '''
-            Plot a saved episode from it's JSON file in the specified directory.
-        '''
+        """Plot a saved episode from it's JSON file in the specified directory."""
+        
         # Check if file exists
         if not os.path.exists(episode_path):
             raise FileNotFoundError(f"Episode file not found: {episode_path}")
@@ -681,15 +676,3 @@ class DashPlotlyGameRenderer:
             
         except Exception as e:
             print(f"Error loading episode from {episode_path}: {e}")
-       
-        
-    
-    def clear_cache(self):
-        '''
-        Clear all cached data to free memory.
-        '''
-        self._data_cache.clear()
-        if hasattr(self, '_team_color_map'):
-            delattr(self, '_team_color_map')
-        if hasattr(self, '_legend_created'):
-            delattr(self, '_legend_created')
