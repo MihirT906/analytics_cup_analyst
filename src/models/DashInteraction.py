@@ -6,16 +6,26 @@ from dash import html, dcc, Input, Output, callback_context, no_update, State
 from .DashPlotlyGameRenderer import DashPlotlyGameRenderer
 
 class DashInteraction:
-    def __init__(self, episode_file):
-        self.episode_file = episode_file
-        self.figures = None
-        self.app = None
-        self.is_playing = False
-        self.is_recording = False
-        self.last_recorded_interval = None
-        self.annotation_store = {}
+    def __init__(self, episode_file, config_file=None, show_voronoi=False):
+        if episode_file is None:
+            print("Warning: No episode file provided. Please provide an episode file to load episode data.")
+            return
+        self.episode_file = episode_file # Path to episode JSON file
+        self.config_file = config_file # Path to config file for DashPlotlyGameRenderer
+        self.show_voronoi = show_voronoi # Whether to show Voronoi diagram
+        self.figures = None # List of plotly figures for each frame
+        self.app = None # Dash app instance
+        self.is_playing = False # Animation playing state
+        self.is_recording = False # Annotation recording state
+        self.last_recorded_interval = None # Last interval recorded
+        self.annotation_store = {} # Store for annotations
 
     def _display_annotation_store(self):
+        '''
+        Function returns a Dash HTML Div containing the current annotations in the annotation store.
+        Each annotation is displayed with its frame start, frame end, and shape type.
+        '''
+        
         if not self.annotation_store:
             return html.Div("No annotations yet", style={
                 'backgroundColor': '#ffa500', 
@@ -44,6 +54,7 @@ class DashInteraction:
 
     def _get_shape_hash(self, shape):
         """Generate a unique hash for a shape based only on core geometric properties"""
+
         # Only use the properties that define the shape's position and type
         core_properties = {
             'type': shape.get('type'),
@@ -64,17 +75,18 @@ class DashInteraction:
     
     def _get_current_frame_number(self, n_intervals):
         """Get the current frame number based on animation intervals"""
+        
         if len(self.figures) == 0:
-            return self.episode_data['frame_start']  # Return START_FRAME instead of 0 when no figures
+            return self.episode_data['frame_start']  # Return START_FRAME when no figures
         if n_intervals >= len(self.figures):
-            # When at the end, we're at the last figure which represents END_FRAME
-            return self.episode_data['frame_end']
+            return self.episode_data['frame_end']  # Stop at last frame
         else:
             # n_intervals starts from 0, first figure is START_FRAME
             return n_intervals + self.episode_data['frame_start']
 
     def _get_episode_data(self):
         """ Load episode data from the provided JSON file """
+        
         if not self.episode_file:
             raise ValueError("Episode file path is not provided.")
         
@@ -86,6 +98,7 @@ class DashInteraction:
     
     def _save_episode_data(self):
         """ Save episode data and annotations back to the JSON file """
+        
         if not self.episode_file:
             raise ValueError("Episode file path is not provided.")
         
@@ -96,16 +109,17 @@ class DashInteraction:
         
         with open(self.episode_file, 'w') as f:
             json.dump(data_to_save, f, indent=4)
-        
-        print(f"Episode data and annotations saved to {self.episode_file}")
-    
+
+        print(f"Your episode has been saved to {self.episode_file}")
+
     def _get_episode(self):
         """ Generate figures for the episode using DashPlotlyGameRenderer """
+        
         try:
             self._get_episode_data()
-            game_renderer = DashPlotlyGameRenderer(config_file='src/config/simple_game_renderer_config.json')
+            game_renderer = DashPlotlyGameRenderer(config_file=self.config_file)
             figures = game_renderer.plot_episode(self.episode_data['match_id'], self.episode_data['frame_start'], self.episode_data['frame_end'], delay=0, show_voronoi=True)
-            print(f"Generated {len(figures)} figures for frames {self.episode_data['frame_start']} to {self.episode_data['frame_end']}")
+            print(f"Episode generated. Start Frame: {self.episode_data['frame_start']}, End Frame: {self.episode_data['frame_end']}")
             self.figures = figures
             
         except Exception as e:
@@ -114,6 +128,7 @@ class DashInteraction:
     
     def _create_header(self):
         """ Create header section of the Dash app """
+        
         return html.Div(id='header', children=[
             html.H1("Episode Craft Studio", style={'textAlign': 'center', 'padding-left': '20px'}),
             html.Div(id='match-info', children=[
@@ -127,6 +142,7 @@ class DashInteraction:
     
     def _create_plot_controls(self):
         """ Create plot control buttons """
+        
         record_button = html.Button('REC', id='record-button', n_clicks=0, style={
                     'backgroundColor': "white",
                     'color': 'black',
@@ -182,7 +198,7 @@ class DashInteraction:
 
     def _create_episode_slider(self):
         """ Create episode frame slider """
-        red_percentage = 10
+        
         frame_slider = html.Div([
             dcc.Slider(
                 id='frame-slider',
@@ -209,6 +225,7 @@ class DashInteraction:
     
     def _create_plot_area(self):
         """ Create plot area with graph and interval component """
+        
         current_frame_display = html.Div(id='current-frame-display', style={
             # 'backgroundColor': '#ffffff', 
             'textAlign': 'center', 
@@ -272,6 +289,8 @@ class DashInteraction:
 
 
     def _create_annotation_area(self):
+        """ Create annotation area with clear button and display """
+        
         clear_annotations_button = html.Button('Clear Annotations', id='clear-annotations', n_clicks=0, style={
                         'backgroundColor': '#ffc107',
                         'color': 'black',
@@ -298,6 +317,8 @@ class DashInteraction:
 
 
     def _create_layout(self):
+        """ Create the overall layout of the Dash app """
+        
         return html.Div(id='main-layout', children=[
                 self._create_header(), 
                 html.Div(children=[
@@ -314,6 +335,7 @@ class DashInteraction:
 
     def _add_control_animation_callback(self):
         """ Add callback to control animation playback """
+        
         @self.app.callback(
             [Output('record-button', 'disabled'),
              Output('reset-button', 'disabled'),
