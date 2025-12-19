@@ -118,7 +118,7 @@ class DashInteraction:
         try:
             self._get_episode_data()
             game_renderer = DashPlotlyGameRenderer(config_file=self.config_file)
-            figures = game_renderer.plot_episode(self.episode_data['match_id'], self.episode_data['frame_start'], self.episode_data['frame_end'], delay=0, show_voronoi=True)
+            figures = game_renderer.plot_episode(self.episode_data['match_id'], self.episode_data['frame_start'], self.episode_data['frame_end'], delay=0, show_voronoi=self.show_voronoi)
             print(f"Episode generated. Start Frame: {self.episode_data['frame_start']}, End Frame: {self.episode_data['frame_end']}")
             self.figures = figures
             
@@ -135,7 +135,9 @@ class DashInteraction:
                 html.P([
                     html.B("Match ID: "), f"{self.episode_data['match_id']}", 
                     html.Span(" | ", style={'margin': '0 10px'}),
-                    html.B("Frame Range: "), f"{self.episode_data['frame_start']} - {self.episode_data['frame_end']}"
+                    html.B("Frame Range: "), f"{self.episode_data['frame_start']} - {self.episode_data['frame_end']}",
+                    html.Span(" | ", style={'margin': '0 10px'}),
+                    html.B("Episode File: "), f"{self.episode_file}"
                 ], style={'textAlign': 'left', 'padding-left': '20px', 'margin': '5px 0'}),
             ], style={'backgroundColor': "#f0f0f0b4", 'margin-bottom': '15px', 'border': '1px solid black'})
         ])
@@ -544,7 +546,8 @@ class DashInteraction:
                     for shape_hash, shape_dict in list(self.annotation_store.items()):
                         # print(shape_dict)
                         if (shape_hash in removed_shape_hashes) and (shape_dict['frame_start'] <= current_frame):
-                            shape_dict['frame_end'] = current_frame
+                            if shape_dict['frame_end'] is None:
+                                shape_dict['frame_end'] = current_frame
                             self.annotation_store[shape_hash] = shape_dict
                         # if shape_dict['frame_end'] is not None and shape_dict['frame_end'] <= shape_dict['frame_start']:
                         #     del self.annotation_store[shape_hash]
