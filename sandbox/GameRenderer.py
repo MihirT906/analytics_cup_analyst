@@ -1,5 +1,5 @@
 from mplsoccer import Pitch 
-from .DataLoader import DataLoader
+from ..src.models.DataLoader import DataLoader
 from IPython.display import clear_output, display
 import time
 import matplotlib.pyplot as plt

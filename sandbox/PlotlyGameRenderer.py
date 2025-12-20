@@ -1,5 +1,5 @@
-from .Pitch import PlotlyPitch
-from .DataLoader import DataLoader
+from ..src.models.Pitch import PlotlyPitch
+from ..src.models.DataLoader import DataLoader
 from IPython.display import clear_output, display
 import time
 import matplotlib.pyplot as plt
