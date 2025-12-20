@@ -6,5 +6,93 @@
         "frame_start": 1314,
         "frame_end": 1464,
         "match_id": 1886347
+    },
+    "annotation_data": {
+        "403824ff95bb0c84d23ec8cc02c0977f": {
+            "frame_start": 1314,
+            "frame_end": 1397,
+            "shape": {
+                "editable": true,
+                "visible": true,
+                "showlegend": false,
+                "legend": "legend",
+                "legendgroup": "",
+                "legendgrouptitle": {
+                    "text": "",
+                    "font": {
+                        "weight": "normal",
+                        "style": "normal",
+                        "variant": "normal",
+                        "lineposition": "none",
+                        "textcase": "normal",
+                        "shadow": "none"
+                    }
+                },
+                "legendrank": 1000,
+                "label": {
+                    "text": "",
+                    "texttemplate": "",
+                    "texttemplatefallback": "-"
+                },
+                "xref": "x",
+                "yref": "y",
+                "layer": "above",
+                "opacity": 1,
+                "line": {
+                    "color": "#444",
+                    "width": 4,
+                    "dash": "solid"
+                },
+                "fillcolor": "rgba(0,0,0,0)",
+                "fillrule": "evenodd",
+                "type": "circle",
+                "x0": 48.661733533913925,
+                "y0": -11.29730088881358,
+                "x1": -11.827140510658118,
+                "y1": 30.694975307418225
+            }
+        },
+        "d0065233e3340b19a5ec1c1a3e4d5345": {
+            "frame_start": 1391,
+            "frame_end": null,
+            "shape": {
+                "editable": true,
+                "visible": true,
+                "showlegend": false,
+                "legend": "legend",
+                "legendgroup": "",
+                "legendgrouptitle": {
+                    "text": "",
+                    "font": {
+                        "weight": "normal",
+                        "style": "normal",
+                        "variant": "normal",
+                        "lineposition": "none",
+                        "textcase": "normal",
+                        "shadow": "none"
+                    }
+                },
+                "legendrank": 1000,
+                "label": {
+                    "text": "",
+                    "texttemplate": "",
+                    "texttemplatefallback": "-"
+                },
+                "xref": "x",
+                "yref": "y",
+                "layer": "above",
+                "opacity": 1,
+                "line": {
+                    "color": "#444",
+                    "width": 4,
+                    "dash": "solid"
+                },
+                "type": "line",
+                "x0": 3.7475290697674426,
+                "y0": -10.803488372093023,
+                "x1": 31.849854651162797,
+                "y1": 16.945348837209302
+            }
+        }
     }
 }

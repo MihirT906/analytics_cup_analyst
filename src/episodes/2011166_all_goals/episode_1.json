@@ -1,0 +1,10 @@
+{
+    "episode_data": {
+        "Sequence_ID": 1.0,
+        "lead_to_goal": true,
+        "team_shortname": "Melbourne V FC",
+        "frame_start": 4052,
+        "frame_end": 4176,
+        "match_id": 2011166
+    }
+}

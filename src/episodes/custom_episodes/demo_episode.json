@@ -1,0 +1,230 @@
+{
+    "episode_data": {
+        "Sequence_ID": 1.0,
+        "lead_to_goal": true,
+        "team_shortname": "Melbourne City",
+        "frame_start": 19301,
+        "frame_end": 19473,
+        "match_id": 2006229
+    },
+    "annotation_data": {
+        "e5eea09bab9e908c1081ea47d4b5fff0": {
+            "frame_start": 19315,
+            "frame_end": 19334,
+            "shape": {
+                "editable": true,
+                "visible": true,
+                "showlegend": false,
+                "legend": "legend",
+                "legendgroup": "",
+                "legendgrouptitle": {
+                    "text": "",
+                    "font": {
+                        "weight": "normal",
+                        "style": "normal",
+                        "variant": "normal",
+                        "lineposition": "none",
+                        "textcase": "normal",
+                        "shadow": "none"
+                    }
+                },
+                "legendrank": 1000,
+                "label": {
+                    "text": "",
+                    "texttemplate": "",
+                    "texttemplatefallback": "-"
+                },
+                "xref": "x",
+                "yref": "y",
+                "layer": "above",
+                "opacity": 1,
+                "line": {
+                    "color": "#444",
+                    "width": 4,
+                    "dash": "solid"
+                },
+                "type": "line",
+                "x0": -8.88354747683503,
+                "y0": 2.7057831520257993,
+                "x1": -8.88354747683503,
+                "y1": -35.47096103402071
+            }
+        },
+        "c53e73b707841f13963ebbd80e395367": {
+            "frame_start": 19334,
+            "frame_end": 19334,
+            "shape": {
+                "editable": true,
+                "visible": true,
+                "showlegend": false,
+                "legend": "legend",
+                "legendgroup": "",
+                "legendgrouptitle": {
+                    "text": "",
+                    "font": {
+                        "weight": "normal",
+                        "style": "normal",
+                        "variant": "normal",
+                        "lineposition": "none",
+                        "textcase": "normal",
+                        "shadow": "none"
+                    }
+                },
+                "legendrank": 1000,
+                "label": {
+                    "text": "",
+                    "texttemplate": "",
+                    "texttemplatefallback": "-"
+                },
+                "xref": "x",
+                "yref": "y",
+                "layer": "above",
+                "opacity": 1,
+                "line": {
+                    "color": "#444",
+                    "width": 4,
+                    "dash": "solid"
+                },
+                "fillcolor": "rgba(0,0,0,0)",
+                "fillrule": "evenodd",
+                "type": "circle",
+                "x0": 12.439694921981529,
+                "y0": -24.21262418391034,
+                "x1": 24.937396170860048,
+                "y1": -34.710693232968296
+            }
+        },
+        "89d923383d74936389107bf3a7bc9a69": {
+            "frame_start": 19334,
+            "frame_end": 19351,
+            "shape": {
+                "editable": true,
+                "visible": true,
+                "showlegend": false,
+                "legend": "legend",
+                "legendgroup": "",
+                "legendgrouptitle": {
+                    "text": "",
+                    "font": {
+                        "weight": "normal",
+                        "style": "normal",
+                        "variant": "normal",
+                        "lineposition": "none",
+                        "textcase": "normal",
+                        "shadow": "none"
+                    }
+                },
+                "legendrank": 1000,
+                "label": {
+                    "text": "",
+                    "texttemplate": "",
+                    "texttemplatefallback": "-"
+                },
+                "xref": "x",
+                "yref": "y",
+                "layer": "above",
+                "opacity": 1,
+                "line": {
+                    "color": "#444",
+                    "width": 4,
+                    "dash": "solid"
+                },
+                "fillcolor": "rgba(0,0,0,0)",
+                "fillrule": "evenodd",
+                "type": "circle",
+                "x0": 8.8368042251801,
+                "y0": -20.786477673155414,
+                "x1": 27.83331012347543,
+                "y1": -37.78335137163019
+            }
+        },
+        "60c75e50b69decb92920d6c68fb48862": {
+            "frame_start": 19374,
+            "frame_end": 19429,
+            "shape": {
+                "editable": true,
+                "visible": true,
+                "showlegend": false,
+                "legend": "legend",
+                "legendgroup": "",
+                "legendgrouptitle": {
+                    "text": "",
+                    "font": {
+                        "weight": "normal",
+                        "style": "normal",
+                        "variant": "normal",
+                        "lineposition": "none",
+                        "textcase": "normal",
+                        "shadow": "none"
+                    }
+                },
+                "legendrank": 1000,
+                "label": {
+                    "text": "",
+                    "texttemplate": "",
+                    "texttemplatefallback": "-"
+                },
+                "xref": "x",
+                "yref": "y",
+                "layer": "above",
+                "opacity": 1,
+                "line": {
+                    "color": "#444",
+                    "width": 4,
+                    "dash": "solid"
+                },
+                "fillcolor": "rgba(0,0,0,0)",
+                "fillrule": "evenodd",
+                "type": "rect",
+                "x0": -45.64633817450945,
+                "y0": -14.084914522392806,
+                "x1": -16.660291662881544,
+                "y1": -30.522123824718385
+            }
+        },
+        "59e6d9501069369cb367c557f6a3f37b": {
+            "frame_start": 19429,
+            "frame_end": 19435,
+            "shape": {
+                "editable": true,
+                "visible": true,
+                "showlegend": false,
+                "legend": "legend",
+                "legendgroup": "",
+                "legendgrouptitle": {
+                    "text": "",
+                    "font": {
+                        "weight": "normal",
+                        "style": "normal",
+                        "variant": "normal",
+                        "lineposition": "none",
+                        "textcase": "normal",
+                        "shadow": "none"
+                    }
+                },
+                "legendrank": 1000,
+                "label": {
+                    "text": "",
+                    "texttemplate": "",
+                    "texttemplatefallback": "-"
+                },
+                "xref": "x",
+                "yref": "y",
+                "layer": "above",
+                "opacity": 1,
+                "line": {
+                    "color": "#444",
+                    "width": 4,
+                    "dash": "solid"
+                },
+                "fillcolor": "rgba(0,0,0,0)",
+                "fillrule": "evenodd",
+                "type": "circle",
+                "x0": -43.92393674123356,
+                "y0": 2.826188514588649,
+                "x1": -27.926879142669065,
+                "y1": -28.16811058263007
+            }
+        }
+    }
+}

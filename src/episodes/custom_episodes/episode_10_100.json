@@ -3,5 +3,135 @@
         "frame_start": 10,
         "frame_end": 100,
         "match_id": 1886347
+    },
+    "annotation_data": {
+        "892e25f719dcac47fb05f58674dc3f84": {
+            "frame_start": 22,
+            "frame_end": 59,
+            "shape": {
+                "editable": true,
+                "visible": true,
+                "showlegend": false,
+                "legend": "legend",
+                "legendgroup": "",
+                "legendgrouptitle": {
+                    "text": "",
+                    "font": {
+                        "weight": "normal",
+                        "style": "normal",
+                        "variant": "normal",
+                        "lineposition": "none",
+                        "textcase": "normal",
+                        "shadow": "none"
+                    }
+                },
+                "legendrank": 1000,
+                "label": {
+                    "text": "",
+                    "texttemplate": "",
+                    "texttemplatefallback": "-"
+                },
+                "xref": "x",
+                "yref": "y",
+                "layer": "above",
+                "opacity": 1,
+                "line": {
+                    "color": "#444",
+                    "width": 4,
+                    "dash": "solid"
+                },
+                "fillcolor": "rgba(0,0,0,0)",
+                "fillrule": "evenodd",
+                "type": "rect",
+                "x0": -4.392369186046512,
+                "y0": 20.656976744186046,
+                "x1": 8.863444767441862,
+                "y1": 13.41046511627907
+            }
+        },
+        "e75f1c4aff3546faa926aadb711e3689": {
+            "frame_start": 42,
+            "frame_end": null,
+            "shape": {
+                "editable": true,
+                "visible": true,
+                "showlegend": false,
+                "legend": "legend",
+                "legendgroup": "",
+                "legendgrouptitle": {
+                    "text": "",
+                    "font": {
+                        "weight": "normal",
+                        "style": "normal",
+                        "variant": "normal",
+                        "lineposition": "none",
+                        "textcase": "normal",
+                        "shadow": "none"
+                    }
+                },
+                "legendrank": 1000,
+                "label": {
+                    "text": "",
+                    "texttemplate": "",
+                    "texttemplatefallback": "-"
+                },
+                "xref": "x",
+                "yref": "y",
+                "layer": "above",
+                "opacity": 1,
+                "line": {
+                    "color": "#444",
+                    "width": 4,
+                    "dash": "solid"
+                },
+                "type": "line",
+                "x0": 32.01693313953489,
+                "y0": 17.298837209302324,
+                "x1": 0.9099563953488373,
+                "y1": 0.3313953488372093
+            }
+        },
+        "e918746ab47376dae1ac23f8d4013aae": {
+            "frame_start": 78,
+            "frame_end": null,
+            "shape": {
+                "editable": true,
+                "visible": true,
+                "showlegend": false,
+                "legend": "legend",
+                "legendgroup": "",
+                "legendgrouptitle": {
+                    "text": "",
+                    "font": {
+                        "weight": "normal",
+                        "style": "normal",
+                        "variant": "normal",
+                        "lineposition": "none",
+                        "textcase": "normal",
+                        "shadow": "none"
+                    }
+                },
+                "legendrank": 1000,
+                "label": {
+                    "text": "",
+                    "texttemplate": "",
+                    "texttemplatefallback": "-"
+                },
+                "xref": "x",
+                "yref": "y",
+                "layer": "above",
+                "opacity": 1,
+                "line": {
+                    "color": "#444",
+                    "width": 4,
+                    "dash": "solid"
+                },
+                "type": "line",
+                "x0": -10.048183139534885,
+                "y0": 20.126744186046512,
+                "x1": 19.29135174418605,
+                "y1": -11.68720930232558
+            }
+        }
     }
 }
