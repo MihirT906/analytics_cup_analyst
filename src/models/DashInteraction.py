@@ -2,6 +2,7 @@ import json
 import dash
 import copy
 import hashlib
+import os
 from dash import html, dcc, Input, Output, callback_context, no_update, State
 from .DashPlotlyGameRenderer import DashPlotlyGameRenderer
 
@@ -90,10 +91,38 @@ class DashInteraction:
         if not self.episode_file:
             raise ValueError("Episode file path is not provided.")
         
-        with open(self.episode_file, 'r') as f:
-            data = json.load(f)
+        try:
+            if not os.path.exists(self.episode_file):
+                raise FileNotFoundError(f"Episode file {self.episode_file} does not exist.")
+        
+            with open(self.episode_file, 'r') as f:
+                data = json.load(f)
+        
+        except Exception as e:
+            raise ValueError(f"Error loading episode file {self.episode_file}: {e}")
 
         self.episode_data = data.get('episode_data', {})
+        
+        required_fields = ['frame_start', 'frame_end', 'match_id']
+        for field in required_fields:
+            if field not in self.episode_data:
+                raise ValueError(f"Missing required field '{field}' in episode data.")
+
+        try:
+            frame_start = int(self.episode_data['frame_start'])
+            frame_end = int(self.episode_data['frame_end'])
+            match_id = str(self.episode_data['match_id'])
+            
+            if frame_start < 0 or frame_end < 0 or frame_end < frame_start:
+                raise ValueError("Frame start and end must be non-negative integers with end >= start.")
+            
+            self.episode_data['frame_start'] = frame_start
+            self.episode_data['frame_end'] = frame_end
+            self.episode_data['match_id'] = match_id
+        
+        except Exception as e:
+            raise ValueError(f"Invalid data types in episode data: {e}")
+        
         self.annotation_store = data.get('annotation_data', {})
     
     def _save_episode_data(self):
