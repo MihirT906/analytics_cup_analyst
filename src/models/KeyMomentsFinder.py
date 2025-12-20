@@ -126,7 +126,13 @@ class KeyMomentsFinder:
         if episodes_df.empty:
             raise ValueError("No episodes data to save")
         
-        if not os.path.exists(folder_path):
+        # Check if folder exists and has episode files
+        if os.path.exists(folder_path):
+            existing_files = [f for f in os.listdir(folder_path) if f.startswith('episode_') and f.endswith('.json')]
+            if existing_files:
+                raise FileExistsError(f"Episode files already exist in {folder_path}: {existing_files}. "
+                                    f"Please use a different folder name or remove existing files.")
+        else:
             os.makedirs(folder_path)
         
         for _, row in episodes_df.iterrows():
