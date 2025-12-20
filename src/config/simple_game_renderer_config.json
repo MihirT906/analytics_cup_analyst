@@ -15,23 +15,23 @@
             "width": 68
         },
         "styling": {
-            "background_color": "#4cbb17",
+            "background_color": "#aabb97",
             "line_color": "white",
             "line_width": 1.5,
             "line_alpha": 0.75,
             "stripe_color": "#008000",
-            "show_stripes": true
+            "show_stripes": false
         }
     },
     "teams": {
-        "colors": ["#5559DB", "#D56363"]
+        "colors": ["#A50044", "#FEBE10"]
     },
     "players": {
         "styling": {
-            "size": 10,
+            "size": 14,
             "alpha": 0.95,
             "edge_width": 1,
-            "gk_size_multiplier": 1,
+            "gk_size_multiplier": 1.2,
             "edgecolors": "white",
             "marker": "o",
             "z_order": 10
@@ -71,7 +71,7 @@
     "ball": {
         "enabled": true,
         "color": "white",
-        "size": 5,
+        "size": 8,
         "edge_color": "black",
         "edge_width": 2,
         "z_order": 15
