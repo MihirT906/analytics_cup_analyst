@@ -4,6 +4,7 @@ import requests
 import json
 import numpy as np
 
+
 class DataLoader:
     def __init__(self):
         pass
@@ -12,32 +13,34 @@ class DataLoader:
         """Convert time string in HH:MM:SS format to total seconds."""
         if time_str is None:
             return 90 * 60  # 120 minutes = 7200 seconds
-        h, m, s = map(int, time_str.split(':'))
+        h, m, s = map(int, time_str.split(":"))
         return h * 3600 + m * 60 + s
 
     def load_tracking_data(self, match_id) -> pd.DataFrame:
         """Load tracking data for a specific match."""
-        
+
         # Ingest tracking data from Github
-        tracking_data_github_url = f'https://media.githubusercontent.com/media/SkillCorner/opendata/741bdb798b0c1835057e3fa77244c1571a00e4aa/data/matches/{match_id}/{match_id}_tracking_extrapolated.jsonl'
-        raw_data=pd.read_json(tracking_data_github_url,lines=True)
+        tracking_data_github_url = f"https://media.githubusercontent.com/media/SkillCorner/opendata/741bdb798b0c1835057e3fa77244c1571a00e4aa/data/matches/{match_id}/{match_id}_tracking_extrapolated.jsonl"
+        raw_data = pd.read_json(tracking_data_github_url, lines=True)
         raw_df = pd.json_normalize(
             raw_data.to_dict("records"),
             "player_data",
             ["frame", "timestamp", "period", "possession", "ball_data"],
         )
-        
+
         # Extract 'player_id' and 'group from the 'possession' dictionary
         raw_df["possession_player_id"] = raw_df["possession"].apply(
             lambda x: x.get("player_id")
         )
-        raw_df["possession_group"] = raw_df["possession"].apply(lambda x: x.get("group"))
-        
+        raw_df["possession_group"] = raw_df["possession"].apply(
+            lambda x: x.get("group")
+        )
+
         # (Optional) Expand the ball_data with json_normalize
         raw_df[["ball_x", "ball_y", "ball_z", "is_detected_ball"]] = pd.json_normalize(
             raw_df.ball_data
         )
-        
+
         # (Optional) Drop the original 'possession' column if you no longer need it
         raw_df = raw_df.drop(columns=["possession", "ball_data"])
 
@@ -51,10 +54,10 @@ class DataLoader:
         """Load metadata for a specific match."""
 
         # Ingest metadata from Github
-        meta_data_github_url=f'https://raw.githubusercontent.com/SkillCorner/opendata/741bdb798b0c1835057e3fa77244c1571a00e4aa/data/matches/{match_id}/{match_id}_match.json'
+        meta_data_github_url = f"https://raw.githubusercontent.com/SkillCorner/opendata/741bdb798b0c1835057e3fa77244c1571a00e4aa/data/matches/{match_id}/{match_id}_match.json"
         response = requests.get(meta_data_github_url)
         raw_match_data = response.json()
-        
+
         # The output has nested json elements. We process them
         raw_match_df = pd.json_normalize(raw_match_data, max_level=2)
         raw_match_df["home_team_side"] = raw_match_df["home_team_side"].astype(str)
@@ -73,14 +76,14 @@ class DataLoader:
                 "away_team.id",
             ],  # data we keep
         )
-                
+
         # Take only players who played and create their total time
         players_df = players_df[
             ~((players_df.start_time.isna()) & (players_df.end_time.isna()))
         ]
-        players_df["total_time"] = players_df["end_time"].apply(self._time_to_seconds) - players_df[
-            "start_time"
-        ].apply(self._time_to_seconds)
+        players_df["total_time"] = players_df["end_time"].apply(
+            self._time_to_seconds
+        ) - players_df["start_time"].apply(self._time_to_seconds)
 
         # Create a flag for GK
         players_df["is_gk"] = players_df["player_role.acronym"] == "GK"
@@ -145,20 +148,18 @@ class DataLoader:
         ]
         players_df = players_df[columns_to_keep]
         return players_df
-    
+
     def load_event_data(self, match_id) -> pd.DataFrame:
         """Load event data for a specific match."""
 
-        event_data_github_url = f'https://raw.githubusercontent.com/SkillCorner/opendata/refs/heads/master/data/matches/{match_id}/{match_id}_dynamic_events.csv'
-        raw_data=pd.read_csv(event_data_github_url)
-        #raw_data = pd.read_csv('../../sandbox/sample_data/1886347_dynamic_events.csv')
+        event_data_github_url = f"https://raw.githubusercontent.com/SkillCorner/opendata/refs/heads/master/data/matches/{match_id}/{match_id}_dynamic_events.csv"
+        raw_data = pd.read_csv(event_data_github_url)
+        # raw_data = pd.read_csv('../../sandbox/sample_data/1886347_dynamic_events.csv')
         return raw_data
-        
-        
 
     def create_enriched_tracking_data(self, match_id) -> pd.DataFrame:
         """Merge tracking data with metadata to create enriched tracking data."""
-        
+
         tracking_df = self.load_tracking_data(match_id)
         meta_df = self.load_meta_data(match_id)
         enriched_tracking_data = tracking_df.merge(

@@ -4,4 +4,10 @@ from .Pitch import Pitch
 from .DashPlotlyGameRenderer import DashPlotlyGameRenderer
 from .DashInteraction import DashInteraction
 
-__all__ = ['DataLoader', 'KeyMomentsFinder', 'Pitch', 'DashPlotlyGameRenderer', 'DashInteraction']
+__all__ = [
+    "DataLoader",
+    "KeyMomentsFinder",
+    "Pitch",
+    "DashPlotlyGameRenderer",
+    "DashInteraction",
+]
