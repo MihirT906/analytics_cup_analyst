@@ -69,15 +69,32 @@ git clone https://github.com/MihirT906/analytics_cup_analyst.git
 ```
 
 2. **Install dependencies**:
+The below command creates an environment [analytics_cup_analyst] with all required dependencies:
 ```bash
-pip install -r requirements.txt
+conda env create -f environment.yml
+conda activate analytics_cup_analyst
 ```
 
-3. **Run the application**:
-Follow along the file:
+3. **Create Jupyter Kernel**:
+Create a kernel to run juptyter notebooks using the above environemnt
 ```bash
-analytics_cup_analyst/submission.ipynb
+python -m ipykernel install --user \
+  --name analytics_cup_analyst \
+  --display-name "Python (analytics_cup_analyst)"
 ```
+3. **Run the application**:
+Launch:
+```bash
+jupyter notebook
+```
+and run submission.ipynb
+Follow along the notebook and run all cells
+
+**Optional Step 3 (Local Editor / Script Run)**
+If using VS Code, PyCharm, or another editor:
+* Point the interpreter to the analytics_cup_analyst environment
+* Run submission.py or the notebook directly
+
 ---
 
 ## [Optional] URL to Web App / Website
