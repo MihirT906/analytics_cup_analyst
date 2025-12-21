@@ -66,6 +66,7 @@ https://drive.google.com/file/d/1WzB8xe8xU54aGb5QSh4qrVPqyp7rDMzN/view?usp=shari
 1. **Clone the repository**:
 ```bash
 git clone https://github.com/MihirT906/analytics_cup_analyst.git
+cd analytics_cup_analyst
 ```
 
 2. **Install dependencies**:
@@ -93,7 +94,13 @@ Follow along the notebook and run all cells
 **Optional Step 3 (Local Editor / Script Run)**
 If using VS Code, PyCharm, or another editor:
 * Point the interpreter to the analytics_cup_analyst environment
-* Run submission.py or the notebook directly
+* Run the notebook submission.ipynb
+
+If facing issues with kernel:
+Run 
+```bash
+python submission.py
+```
 
 ---
 
