@@ -1,9 +1,9 @@
+# More information in submission.ipynb. Use this if the notebook is not working.
 from src.models.DashInteraction import DashInteraction
 
 def create_dash_app():
     print("Creating dash app")
-    #da = DashInteraction(episode_file='src/episodes/custom_episodes/episode_10_100.json')
-    da = DashInteraction(episode_file='src/episodes/1886347_all_shots/episode_2.json')
+    da = DashInteraction(episode_file='src/episodes/custom_episodes/episode_10_100.json')
     app = da.create_app()
     return app
 
