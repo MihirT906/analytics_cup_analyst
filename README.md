@@ -57,7 +57,7 @@ Coaches, sports analysts, and sports analytics content creators
 ---
 
 ## Video URL
-
+Watch the demo below to find out how to use this repository to the fullest: 
 https://drive.google.com/file/d/1WzB8xe8xU54aGb5QSh4qrVPqyp7rDMzN/view?usp=sharing
 
 ---
@@ -104,4 +104,5 @@ python submission.py
 
 ---
 
-## [Optional] URL to Web App / Website
+For further information, documentation is available at:
+docs/episode_studio_documentation.pdf
