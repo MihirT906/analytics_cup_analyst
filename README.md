@@ -28,8 +28,9 @@ cd analytics_cup_analyst
 2. **Install dependencies**:
 The below command creates an environment [analytics_cup_analyst] with all required dependencies. If an environment already exists with the above name, please remove it.
 ```bash
-conda env create -f environment.yml
-conda activate analytics_cup_analyst
+python3 -m venv venv
+source venv/bin/activate
+pip install -r requirements.txt
 ```
 
 3. **Create Jupyter Kernel**:
@@ -40,7 +41,7 @@ python -m ipykernel install --user \
   --display-name "Python (analytics_cup_analyst)"
 ```
 3. **Run the application**:
-Launch:
+Launch jupyter:
 ```bash
 jupyter notebook
 ```
