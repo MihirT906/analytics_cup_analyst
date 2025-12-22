@@ -44,7 +44,7 @@ Launch:
 ```bash
 jupyter notebook
 ```
-and run submission.ipynb
+and run **submission.ipynb**
 Follow along the notebook and run all cells
 
 **Optional Step 3 (Local Editor / Script Run)**
