@@ -26,7 +26,7 @@ cd analytics_cup_analyst
 ```
 
 2. **Install dependencies**:
-The below command creates an environment [analytics_cup_analyst] with all required dependencies:
+The below command creates an environment [analytics_cup_analyst] with all required dependencies. If an environment already exists with the above name, please remove it.
 ```bash
 conda env create -f environment.yml
 conda activate analytics_cup_analyst
@@ -50,7 +50,7 @@ Follow along the notebook and run all cells
 **Optional Step 3 (Local Editor / Script Run)**
 If using VS Code, PyCharm, or another editor:
 * Point the interpreter to the analytics_cup_analyst environment
-* Run the notebook submission.ipynb
+* Run the notebook **submission.ipynb**
 
 If facing issues with kernel:
 Run 
